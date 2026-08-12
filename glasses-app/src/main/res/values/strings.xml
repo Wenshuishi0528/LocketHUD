@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LocketHUD POC</string>
+    <string name="minimal_message">LocketHUD POC</string>
+</resources>
