@@ -28,6 +28,7 @@ struct PreparedPortrait {
 #[derive(Serialize)]
 struct DeviceStatus {
     connected: bool,
+    usb_connected: bool,
     model: Option<String>,
     package_installed: bool,
     message: String,
@@ -348,6 +349,7 @@ fn inspect_device() -> DeviceStatus {
     let Some(adb) = find_adb() else {
         return DeviceStatus {
             connected: false,
+            usb_connected: false,
             model: None,
             package_installed: false,
             message: "未找到 Android Platform Tools".into(),
@@ -358,6 +360,7 @@ fn inspect_device() -> DeviceStatus {
         Err(message) => {
             return DeviceStatus {
                 connected: false,
+                usb_connected: false,
                 model: None,
                 package_installed: false,
                 message,
@@ -375,12 +378,16 @@ fn inspect_device() -> DeviceStatus {
         let unauthorized = devices
             .lines()
             .any(|line| line.split_whitespace().nth(1) == Some("unauthorized"));
+        let usb_connected = has_usb_glasses();
         return DeviceStatus {
             connected: false,
+            usb_connected,
             model: None,
             package_installed: false,
             message: if unauthorized {
                 "眼镜已连接，等待确认 USB 调试授权".into()
+            } else if usb_connected {
+                "USB 已连接；请在眼镜中重新开启 USB 调试并确认授权".into()
             } else if online.len() > 1 {
                 "连接了多个 Android 设备，请只保留眼镜".into()
             } else {
@@ -398,6 +405,7 @@ fn inspect_device() -> DeviceStatus {
         .unwrap_or(false);
     DeviceStatus {
         connected: true,
+        usb_connected: true,
         model,
         package_installed,
         message: if package_installed {
@@ -406,6 +414,19 @@ fn inspect_device() -> DeviceStatus {
             "眼镜已连接，尚未安装显示应用".into()
         },
     }
+}
+
+fn has_usb_glasses() -> bool {
+    Command::new("/usr/sbin/ioreg")
+        .args(["-p", "IOUSB", "-l", "-w", "0"])
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .map(|output| {
+            let text = String::from_utf8_lossy(&output.stdout);
+            text.contains("RG-glasses") || text.contains("Rokid")
+        })
+        .unwrap_or(false)
 }
 
 fn find_adb() -> Option<PathBuf> {

@@ -34,6 +34,7 @@ interface PreparedPortrait {
 
 interface DeviceStatus {
   connected: boolean;
+  usb_connected: boolean;
   model: string | null;
   package_installed: boolean;
   message: string;
@@ -353,7 +354,7 @@ async function refreshDevice(): Promise<void> {
     const status = await invoke<DeviceStatus>("get_device_status");
     deviceReady = status.connected && status.package_installed;
     devicePill.classList.toggle("connected", deviceReady);
-    devicePill.classList.toggle("warning", status.connected && !status.package_installed);
+    devicePill.classList.toggle("warning", status.usb_connected && !deviceReady);
     deviceLabel.textContent = status.model && deviceReady ? `${status.model} 已连接` : status.message;
     if (deviceReady && sendStatus.dataset.tone !== "success") {
       setMessage(sourcePath && !prepared ? "等待照片处理完成" : "参数就绪，可以发送");

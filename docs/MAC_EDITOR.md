@@ -12,8 +12,8 @@ The Mac editor owns photo selection, local green-screen processing, layout previ
 - Stack: Tauri 2, TypeScript/Vite, Rust
 - Application bundle: `mac-editor/src-tauri/target/release/bundle/macos/LocketHUD Editor.app`
 - Install image: `artifacts/LocketHUD-Editor-0.1.0-arm64.dmg`
-- DMG size: 2,008,508 bytes
-- DMG SHA-256: `a6c086f9da7c12efaed534d08acb4f7895d5d63c816dcb4d08851a6f58ec33c1`
+- DMG size: 2,009,245 bytes
+- DMG SHA-256: `015aedf6fc96fa4c8867484ac0d667636e7a6bedbb72bbd384091e61501f14da`
 - Signing: complete ad-hoc bundle signature; strict `codesign` verification passes
 - Notarization: not notarized; local development use only
 
@@ -45,6 +45,7 @@ hdiutil verify "src-tauri/target/release/bundle/dmg/LocketHUD Editor_0.1.0_aarch
 - Real release window launch: pass.
 - Real-window selection of a synthetic PNG and local 16-level processing: pass.
 - Position, size, opacity, switches, persistent settings, and disconnected-device UI: pass.
+- USB-present/ADB-unavailable detection: pass; the editor now asks for USB debugging authorization instead of incorrectly saying the glasses are unplugged.
 - App bundle strict signature verification: pass.
 - DMG filesystem/checksum verification: pass.
 - Final ADB send: pending only because the glasses were disconnected after development began.
