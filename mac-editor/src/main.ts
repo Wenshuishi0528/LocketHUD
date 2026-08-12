@@ -81,7 +81,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         </span>
         <div>
           <h1>乐奇相片hud</h1>
-          <p>Mac 相片编辑器</p>
+          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.2 · 作者 wenshuishi0528</span></p>
         </div>
       </div>
       <button class="device-pill" id="refresh-device" type="button" aria-label="刷新眼镜连接状态">

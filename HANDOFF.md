@@ -14,8 +14,8 @@
 
 - 仓库：`/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC`
 - 分支：`main`
-- 私有 GitHub 备份：`https://github.com/Wenshuishi0528/LocketHUD-Backup`
-- GitHub 只备份源码、文档和程序生成的测试素材；不上传用户照片、APK、DMG、截图、日志或构建缓存。
+- 公开 GitHub 项目：`https://github.com/Wenshuishi0528/LocketHUD`
+- GitHub 源码只包含源码、文档和程序生成的测试素材；Release 另附 Mac DMG 与眼镜 APK。用户照片、截图、日志和构建缓存不上传。
 - Android 包名：`dev.local.lockethud.poc`
 - Mac bundle identifier：`dev.local.lockethud.mac`
 - 用户私人照片不得放入 Git、Android resources、测试资源或任何远程仓库。
@@ -42,17 +42,17 @@ Mac 编辑器通过 Rust 命令执行三件事：
 
 - Mac 编辑器：0.1.2，用户可见名称“乐奇相片hud”，Apple Silicon arm64。
 - `/Applications/乐奇相片hud.app` 已安装并启动；旧英文版已移入废纸篓，可恢复。
-- Android 显示端：0.1.1（versionCode 2），用户可见名称“乐奇相片hud”。
+- Android 显示端：0.1.2（versionCode 3），用户可见名称“乐奇相片hud”。
 - Mac 图标源：`mac-editor/src-tauri/icons/lockethud-source.svg`。
 - Mac 和 Android 启动图标均使用绿色微笑小人；头身相切连接并保留亮绿色轮廓。
 - Mac 图标圆角外区域为真实透明像素，不是白底。
 - App Bundle 已包含 `Contents/Resources/icon.icns`，其 SHA-256 与源码生成的 `icon.icns` 一致。
 - Mac DMG：`artifacts/乐奇相片hud-0.1.2-arm64.dmg`。
-- Mac DMG 大小：2,330,403 bytes。
-- Mac DMG SHA-256：`d209575dbcd8e80c482f12ac5346558bbe124a65975d0f4b7e77216dc4653adc`。
-- Android APK：`artifacts/乐奇相片hud-Glasses-0.1.1-debug.apk`。
-- Android APK 大小：2,541,833 bytes。
-- Android APK SHA-256：`68696ac9b1d813472d2cce72ded9ef0745e4cf143d16817164ed24e0c443689c`。
+- Mac DMG 大小：2,330,557 bytes。
+- Mac DMG SHA-256：`53900868230e72847ef1eeccd2183424f301be774d9576cb4ac55a7136867302`。
+- Android APK：`artifacts/乐奇相片hud-Glasses-0.1.2-debug.apk`。
+- Android APK 大小：2,607,462 bytes。
+- Android APK SHA-256：`a5d8e4b911d1f8bb5c1dbc7e06aff32285a3f2359ff5e9d89a765df9a7898f2a`。
 
 DMG 是完整 ad-hoc 签名但未经过 Apple notarization，只用于当前 Mac 本地安装。不要将其描述为可公开分发或已公证版本。
 
@@ -94,6 +94,7 @@ python3 -m unittest discover -s tools/tests -v
 - Mac release 窗口实际打开过；选图、16 级量化处理、位置、大小和透明度控件通过 GUI 验证。
 - Mac 编辑器能区分 USB 未连接、USB 已连接但 ADB 不可用、ADB 在线但 APK 未安装、完全就绪四类状态。
 - 用户已确认从 Mac 编辑器发送样本照片到眼镜成功。
+- 眼镜端返回键隐藏不再持久化；从启动器后台重开或冷启动都会恢复上一张照片并显示。
 
 ## 7. 连接注意事项
 

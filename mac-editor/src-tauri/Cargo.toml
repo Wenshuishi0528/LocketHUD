@@ -2,7 +2,7 @@
 name = "lockethud-mac-editor"
 version = "0.1.2"
 description = "乐奇相片hud 的本地 Mac 编辑器"
-authors = ["LocketHUD"]
+authors = ["wenshuishi0528"]
 edition = "2021"
 
 [lib]

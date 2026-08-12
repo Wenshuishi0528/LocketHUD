@@ -10,10 +10,11 @@ The Mac editor owns photo selection, local green-screen processing, layout previ
 - Version: 0.1.2
 - Architecture: Apple Silicon arm64
 - Stack: Tauri 2, TypeScript/Vite, Rust
+- Author shown in app: `wenshuishi0528`
 - Application bundle: `mac-editor/src-tauri/target/release/bundle/macos/乐奇相片hud.app`
 - Install image: `artifacts/乐奇相片hud-0.1.2-arm64.dmg`
-- DMG size: 2,330,403 bytes
-- DMG SHA-256: `d209575dbcd8e80c482f12ac5346558bbe124a65975d0f4b7e77216dc4653adc`
+- DMG size: 2,330,557 bytes
+- DMG SHA-256: `53900868230e72847ef1eeccd2183424f301be774d9576cb4ac55a7136867302`
 - Signing: complete ad-hoc bundle signature; strict `codesign` verification passes
 - Notarization: not notarized; local development use only
 

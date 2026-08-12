@@ -23,6 +23,7 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         repository = ConfigRepository(this)
         config = repository.load()
+        restoreVisibilityForLaunch(intent)
         applyDebugIntent(intent)
         configureWindow()
         if (Build.VERSION.SDK_INT >= 33) {
@@ -36,6 +37,7 @@ class MainActivity : Activity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        restoreVisibilityForLaunch(intent)
         applyDebugIntent(intent)
         showCurrentMode()
         applyKeepScreenOn()
@@ -65,7 +67,6 @@ class MainActivity : Activity() {
         }
         if (config.visible) {
             config = config.copy(visible = false)
-            repository.save(config)
             (window.decorView.findViewWithTag<View>(PORTRAIT_VIEW_TAG) as? PortraitHudView)
                 ?.updateConfig(config)
             return
@@ -123,6 +124,12 @@ class MainActivity : Activity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+
+    private fun restoreVisibilityForLaunch(intent: Intent) {
+        if (!intent.hasExtra("visible")) {
+            config = config.copy(visible = true)
         }
     }
 

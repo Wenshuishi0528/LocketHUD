@@ -4,7 +4,7 @@
 
 | Input | Behavior | Evidence |
 |---|---|---|
-| Android back callback / key fallback | First back hides the portrait and persists `visible=false`; a second back exits. Back from minimal/calibration first returns to portrait. | Verified on device with injected `KEYCODE_BACK`; first press produced a black screenshot while Activity remained resumed and preferences stored `visible=false`. |
+| Android back callback / key fallback | First back temporarily hides the portrait for the current run; a second back exits. Opening the launcher again restores the last portrait. Back from minimal/calibration first returns to portrait. | Verified on device with injected `KEYCODE_BACK`; first press produced a black screenshot without persisting `visible=false`, and both warm reopen and cold restart restored the same portrait. |
 | ADB debug Intent | Whitelisted anchors, sizes, opacity values, booleans, assets, profiles, and display modes update/persist configuration. Unknown values are ignored. | Verified on device across six anchors, three sizes, four opacity values, minimal/calibration/portrait modes, and process restart. |
 
 No Rokid touchpad, shutter button, confirm key, swipe, double-tap, or long-press code is bound yet. The device is online, but a complete human-performed gesture sequence was not captured during this run, so gesture-to-key binding would still be speculation.

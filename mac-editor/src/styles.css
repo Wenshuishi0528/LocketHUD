@@ -96,6 +96,11 @@ button {
   color: var(--muted);
 }
 
+.brand-meta {
+  margin-left: 8px;
+  color: rgba(157, 255, 198, 0.72);
+}
+
 .device-pill {
   height: 36px;
   display: flex;

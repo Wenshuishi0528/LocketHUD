@@ -31,6 +31,7 @@
     "targets": ["app", "dmg"],
     "icon": ["icons/icon.icns", "icons/icon.png"],
     "category": "Graphics and Design",
+    "copyright": "Copyright © 2026 wenshuishi0528",
     "shortDescription": "在 Mac 上处理相片并发送到乐奇眼镜",
     "macOS": {
       "signingIdentity": "-"
