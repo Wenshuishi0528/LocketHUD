@@ -1,4 +1,4 @@
-# LocketHUD 开发交接
+# 乐奇相片hud 开发交接
 
 更新时间：2026-08-11（America/Los_Angeles）
 
@@ -14,10 +14,11 @@
 
 - 仓库：`/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC`
 - 分支：`main`
-- Git remote：无；不要擅自添加或上传。
+- 私有 GitHub 备份：`https://github.com/Wenshuishi0528/LocketHUD-Backup`
+- GitHub 只备份源码、文档和程序生成的测试素材；不上传用户照片、APK、DMG、截图、日志或构建缓存。
 - Android 包名：`dev.local.lockethud.poc`
 - Mac bundle identifier：`dev.local.lockethud.mac`
-- 用户私人照片不得放入 Git、Android resources、测试资源或公开位置。
+- 用户私人照片不得放入 Git、Android resources、测试资源或任何远程仓库。
 - `local_assets/`、APK、DMG、截图和构建目录均被 Git 忽略。
 
 ## 3. 目录与架构
@@ -39,15 +40,19 @@ Mac 编辑器通过 Rust 命令执行三件事：
 
 ## 4. 当前版本和构建物
 
-- Mac 编辑器：0.1.1，Apple Silicon arm64。
-- `/Applications/LocketHUD Editor.app` 已更新到 0.1.1。
-- Android 显示端：0.1.0，Android debug APK。
+- Mac 编辑器：0.1.2，用户可见名称“乐奇相片hud”，Apple Silicon arm64。
+- `/Applications/乐奇相片hud.app` 已安装并启动；旧英文版已移入废纸篓，可恢复。
+- Android 显示端：0.1.1（versionCode 2），用户可见名称“乐奇相片hud”。
 - Mac 图标源：`mac-editor/src-tauri/icons/lockethud-source.svg`。
+- Mac 和 Android 启动图标均使用绿色微笑小人；头身相切连接并保留亮绿色轮廓。
+- Mac 图标圆角外区域为真实透明像素，不是白底。
 - App Bundle 已包含 `Contents/Resources/icon.icns`，其 SHA-256 与源码生成的 `icon.icns` 一致。
-- Mac DMG：`artifacts/LocketHUD-Editor-0.1.1-arm64.dmg`。
-- Mac DMG 大小：3,556,268 bytes。
-- Mac DMG SHA-256：`df8c94021942cc033af298b478958833a533b7bb028f59e7ca52a4c5fa239d94`。
-- Android APK：`artifacts/LocketHUD-POC-0.1.0-debug.apk`。
+- Mac DMG：`artifacts/乐奇相片hud-0.1.2-arm64.dmg`。
+- Mac DMG 大小：2,330,403 bytes。
+- Mac DMG SHA-256：`d209575dbcd8e80c482f12ac5346558bbe124a65975d0f4b7e77216dc4653adc`。
+- Android APK：`artifacts/乐奇相片hud-Glasses-0.1.1-debug.apk`。
+- Android APK 大小：2,541,833 bytes。
+- Android APK SHA-256：`68696ac9b1d813472d2cce72ded9ef0745e4cf143d16817164ed24e0c443689c`。
 
 DMG 是完整 ad-hoc 签名但未经过 Apple notarization，只用于当前 Mac 本地安装。不要将其描述为可公开分发或已公证版本。
 
@@ -67,9 +72,9 @@ npm run tauri build
 
 ```sh
 codesign --verify --deep --strict \
-  "src-tauri/target/release/bundle/macos/LocketHUD Editor.app"
+  "src-tauri/target/release/bundle/macos/乐奇相片hud.app"
 hdiutil verify \
-  "src-tauri/target/release/bundle/dmg/LocketHUD Editor_0.1.1_aarch64.dmg"
+  "src-tauri/target/release/bundle/dmg/乐奇相片hud_0.1.2_aarch64.dmg"
 ```
 
 Android 显示端仅在相关代码改变时重跑：
@@ -108,8 +113,8 @@ python3 -m unittest discover -s tools/tests -v
 
 ## 9. 下一步优先级
 
-1. 请用户目视确认新绿色小人图标在访达、Dock 和 DMG 中符合预期；0.1.1 已安装并打开。
-2. 用用户选择的样本照片再做一次 0.1.1 发送冒烟测试。
+1. 请用户目视确认带亮绿色描边的小人图标在访达、Dock、DMG 和眼镜启动器中符合预期；0.1.2 已安装并打开。
+2. 用用户选择的样本照片再做一次 0.1.2 发送冒烟测试。
 3. 若用户需要，增加“恢复上次照片”或最近照片列表；仍须保持源照片仅在本地。
 4. 只有用户明确要求后，才设计配对和加密的消费者传输；不要直接开放无认证局域网端口。
 5. 在不插 USB 的情况下测量用户可接受的实际续航，再决定是否移除 `POC0_PASS_WITH_LIMITATIONS`。
@@ -120,4 +125,4 @@ python3 -m unittest discover -s tools/tests -v
 - 不重复与当前修改无关的环境、SDK、Android 或硬件审计；优先直接研发和目标验证。
 - 不引入 iPhone、云、账号、地图、AI、动画、后台服务、系统 overlay 或开机自启动。
 - 不 Root、不刷机、不修改系统分区，不使用来源不明的 Rokid SDK。
-- 不上传代码、APK、DMG、日志或私人照片。
+- 不公开发布代码，不上传 APK、DMG、日志或私人照片；仅按用户授权维护私有源码备份。

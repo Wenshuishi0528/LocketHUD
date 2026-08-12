@@ -9,7 +9,7 @@ Perform all setup and comparisons while seated, stationary, and clear of obstacl
 1. Complete the read-only audit in `HARDWARE_REPORT.md`.
 2. Build and install the debug APK.
 3. Start `--es mode minimal` and record Activity start result, first visible time, actual runtime View size from `LocketHUD.Main`, orientation, clipping, and scaling.
-4. Exit, relaunch, and confirm the black background and green `LocketHUD POC` text.
+4. Exit, relaunch, and confirm the black background and green `乐奇相片hud` text.
 
 ## Phase 2: input probe
 

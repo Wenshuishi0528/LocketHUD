@@ -1,6 +1,6 @@
-# LocketHUD POC
+# 乐奇相片hud
 
-LocketHUD is an independent, local-only system for preparing a portrait on a Mac and displaying it at the edge of a Rokid glasses viewport. The repository contains the lightweight Android display app plus the V1 Mac editor. It does not modify the existing level/HUD or translation apps in the parent workspace.
+“乐奇相片hud”（代码名 LocketHUD）是在 Mac 上处理相片、并把最终画面显示到 Rokid 眼镜视野边缘的本地软件。仓库包含轻量 Android 显示端和 V1 Mac 编辑器，不修改父目录中的水平仪/HUD 或翻译应用。
 
 Current conclusion: `POC0_PASS_WITH_LIMITATIONS`; `V1_MAC_EDITOR_IMPLEMENTED`. The standard Android display path passed on the Rokid RG-glasses and the wearer reported no ghosting for the default layout. Product control has intentionally moved to the Mac: select/process a photo, preview it, adjust position/size/opacity, and send it over the existing local ADB connection. Physical touchpad mapping is no longer on the active development path.
 
@@ -20,6 +20,8 @@ Current conclusion: `POC0_PASS_WITH_LIMITATIONS`; `V1_MAC_EDITOR_IMPLEMENTED`. T
 - Tauri 2 Mac editor with local image selection, green conversion, 8/16-level quantization, dithering, gamma, contrast, sharpening, layout preview, device detection, and one-click ADB delivery.
 
 The temporary package name is `dev.local.lockethud.poc`; it must be replaced before any distribution.
+
+Both installed applications display the name `乐奇相片hud`. Their launcher icons use the same green smiling figure; the Mac icon has a transparent exterior outside its rounded square.
 
 ## Build
 

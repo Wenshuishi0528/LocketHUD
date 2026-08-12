@@ -80,8 +80,8 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
           <svg viewBox="0 0 32 32"><path d="M8 16c0-4.8 3.2-8 8-8s8 3.2 8 8-3.2 8-8 8-8-3.2-8-8Z"/><path d="M5 16h3m16 0h3M16 5v3m0 16v3"/></svg>
         </span>
         <div>
-          <h1>LocketHUD</h1>
-          <p>Mac 人像编辑器</p>
+          <h1>乐奇相片hud</h1>
+          <p>Mac 相片编辑器</p>
         </div>
       </div>
       <button class="device-pill" id="refresh-device" type="button" aria-label="刷新眼镜连接状态">

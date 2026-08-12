@@ -1,4 +1,4 @@
-# LocketHUD Mac editor
+# 乐奇相片hud Mac editor
 
 ## Product boundary
 
@@ -6,14 +6,14 @@ The Mac editor owns photo selection, local green-screen processing, layout previ
 
 ## Delivered application
 
-- Product: `LocketHUD Editor`
-- Version: 0.1.1
+- Product: `乐奇相片hud`
+- Version: 0.1.2
 - Architecture: Apple Silicon arm64
 - Stack: Tauri 2, TypeScript/Vite, Rust
-- Application bundle: `mac-editor/src-tauri/target/release/bundle/macos/LocketHUD Editor.app`
-- Install image: `artifacts/LocketHUD-Editor-0.1.1-arm64.dmg`
-- DMG size: 3,556,268 bytes
-- DMG SHA-256: `df8c94021942cc033af298b478958833a533b7bb028f59e7ca52a4c5fa239d94`
+- Application bundle: `mac-editor/src-tauri/target/release/bundle/macos/乐奇相片hud.app`
+- Install image: `artifacts/乐奇相片hud-0.1.2-arm64.dmg`
+- DMG size: 2,330,403 bytes
+- DMG SHA-256: `d209575dbcd8e80c482f12ac5346558bbe124a65975d0f4b7e77216dc4653adc`
 - Signing: complete ad-hoc bundle signature; strict `codesign` verification passes
 - Notarization: not notarized; local development use only
 
@@ -21,7 +21,7 @@ The Mac editor owns photo selection, local green-screen processing, layout previ
 
 1. Install and launch the LocketHUD Android display APK once.
 2. Connect the glasses over an authorized USB data connection.
-3. Open `LocketHUD Editor` on the Mac.
+3. Open `乐奇相片hud` on the Mac.
 4. Select a PNG, JPEG, HEIC, WebP, or TIFF image.
 5. Choose natural green, 8-level, 16-level, or dithered processing; optionally adjust gamma, contrast, and sharpening.
 6. Set one of six positions, three sizes, four opacity levels, visibility, and foreground keep-screen-on.
@@ -36,8 +36,8 @@ cd mac-editor
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 npm run tauri build
-codesign --verify --deep --strict "src-tauri/target/release/bundle/macos/LocketHUD Editor.app"
-hdiutil verify "src-tauri/target/release/bundle/dmg/LocketHUD Editor_0.1.1_aarch64.dmg"
+codesign --verify --deep --strict "src-tauri/target/release/bundle/macos/乐奇相片hud.app"
+hdiutil verify "src-tauri/target/release/bundle/dmg/乐奇相片hud_0.1.2_aarch64.dmg"
 ```
 
 - TypeScript/Vite production build: pass.
@@ -48,7 +48,7 @@ hdiutil verify "src-tauri/target/release/bundle/dmg/LocketHUD Editor_0.1.1_aarch
 - USB-present/ADB-unavailable detection: pass; the editor now asks for USB debugging authorization instead of incorrectly saying the glasses are unplugged.
 - App bundle strict signature verification: pass.
 - DMG filesystem/checksum verification: pass.
-- Final ADB send: pending only because the glasses were disconnected after development began.
+- Final ADB send: pass; the user successfully sent a selected sample photo, and the renamed/icon-updated display APK was later installed and launched on the connected RG-glasses.
 
 ## V1 limitation
 

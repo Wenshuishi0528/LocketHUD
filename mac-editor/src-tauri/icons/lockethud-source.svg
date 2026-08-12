@@ -8,20 +8,14 @@
       <stop offset="0" stop-color="#00ff70" stop-opacity=".17"/>
       <stop offset="1" stop-color="#00ff70" stop-opacity="0"/>
     </radialGradient>
-    <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
   </defs>
   <rect x="48" y="48" width="928" height="928" rx="220" fill="url(#background)"/>
   <rect x="70" y="70" width="884" height="884" rx="200" fill="none" stroke="#00ff70" stroke-opacity=".12" stroke-width="8"/>
   <circle cx="512" cy="500" r="390" fill="url(#glow)"/>
-  <g filter="url(#soft-glow)" stroke="#00ff70" stroke-width="24" stroke-linejoin="round">
-    <circle cx="512" cy="340" r="142" fill="#064521" fill-opacity=".76"/>
-    <path d="M328 810V622c0-90 73-163 163-163h42c90 0 163 73 163 163v188c0 69-56 125-125 125H453c-69 0-125-56-125-125Z" fill="#064521" fill-opacity=".76"/>
-  </g>
-  <path d="M512 472v451" stroke="#00ff70" stroke-opacity=".14" stroke-width="8"/>
-  <circle cx="456" cy="320" r="15" fill="#00ff70"/>
-  <circle cx="568" cy="320" r="15" fill="#00ff70"/>
-  <path d="M456 373c26 31 86 31 112 0" fill="none" stroke="#00ff70" stroke-linecap="round" stroke-width="18"/>
+  <circle cx="512" cy="315" r="136" fill="#064521" fill-opacity=".76" stroke="#00ff70" stroke-width="24"/>
+  <path d="M512 451c119 0 198 67 198 175v177c0 78-63 141-141 141H455c-78 0-141-63-141-141V626c0-108 79-175 198-175Z" fill="#064521" fill-opacity=".76" stroke="#00ff70" stroke-linejoin="round" stroke-width="24"/>
+  <path d="M512 487v444" stroke="#00ff70" stroke-opacity=".14" stroke-width="8"/>
+  <circle cx="458" cy="296" r="15" fill="#00ff70"/>
+  <circle cx="566" cy="296" r="15" fill="#00ff70"/>
+  <path d="M451 342c29 37 93 37 122 0l-14-10c-23 25-71 25-94 0Z" fill="#00ff70"/>
 </svg>

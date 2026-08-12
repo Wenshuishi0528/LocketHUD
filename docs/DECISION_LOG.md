@@ -4,6 +4,10 @@
 
 Created `LocketHUD-POC` as a separate local Git repository with package `dev.local.lockethud.poc`. Existing level/HUD, AIUI cycling, and translation projects were not modified. No Git remote was added.
 
+## 2026-08-11 — User-authorized private source backup
+
+The user later explicitly authorized a private GitHub backup. The remote is limited to tracked source, documentation, the green synthetic test figure, and other program-generated test assets. Personal photos, APK/DMG artifacts, screenshots, logs, local app data, and build caches remain excluded.
+
 ## 2026-08-11 — Standard Android fallback
 
 The official CXR-S entry was reachable, but a current artifact version, sample template, dependency matrix, and license were not available to the non-authenticated inspection, and no local official CXR-S package was found. The specification explicitly permits testing a standard Android APK first. The implementation therefore uses only Android SDK APIs and makes no Rokid proprietary API claim.

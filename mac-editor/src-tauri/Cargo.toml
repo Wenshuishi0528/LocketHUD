@@ -1,7 +1,7 @@
 [package]
 name = "lockethud-mac-editor"
-version = "0.1.1"
-description = "Local Mac editor for LocketHUD"
+version = "0.1.2"
+description = "乐奇相片hud 的本地 Mac 编辑器"
 authors = ["LocketHUD"]
 edition = "2021"
 
