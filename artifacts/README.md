@@ -1,3 +1,3 @@
 # Local artifacts
 
-Build APKs are copied here for local testing and are ignored by Git. The checksum and source build path are recorded in `docs/BUILD_AND_INSTALL.md`.
+Build APKs and DMGs are copied here for local testing and are ignored by Git. Versioned checksum files are tracked and release build details are recorded in `HANDOFF.md`.

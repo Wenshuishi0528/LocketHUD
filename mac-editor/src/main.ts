@@ -30,6 +30,7 @@ interface PreparedPortrait {
   width: number;
   height: number;
   sha256: string;
+  animated: boolean;
 }
 
 interface DeviceStatus {
@@ -81,7 +82,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         </span>
         <div>
           <h1>乐奇相片hud</h1>
-          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.2 · 作者 wenshuishi0528</span></p>
+          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.3 · 作者 wenshuishi0528</span></p>
         </div>
       </div>
       <button class="device-pill" id="refresh-device" type="button" aria-label="刷新眼镜连接状态">
@@ -117,7 +118,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
           </div>
           <div class="photo-info">
             <strong id="photo-name">内置测试人像</strong>
-            <span id="photo-meta">选择 PNG、JPEG、HEIC 或 WebP</span>
+            <span id="photo-meta">选择 PNG、JPEG、HEIC、WebP 或 GIF 动图</span>
           </div>
           <button class="secondary-button" id="choose-photo" type="button">选择照片</button>
         </div>
@@ -301,7 +302,7 @@ async function choosePhoto(): Promise<void> {
     directory: false,
     title: "选择要显示的人像",
     filters: [
-      { name: "图片", extensions: ["png", "jpg", "jpeg", "heic", "heif", "webp", "tif", "tiff"] },
+      { name: "图片与 GIF 动图", extensions: ["png", "jpg", "jpeg", "heic", "heif", "webp", "tif", "tiff", "gif"] },
     ],
   });
   if (typeof selected !== "string") return;
@@ -329,7 +330,7 @@ async function processPhoto(): Promise<void> {
     if (sequence !== processingSequence) return;
     prepared = result;
     previewImage.src = result.data_url;
-    element<HTMLElement>("#photo-meta").textContent = `${result.width} × ${result.height} · 本地处理完成`;
+    element<HTMLElement>("#photo-meta").textContent = `${result.width} × ${result.height} · ${result.animated ? "GIF 动图" : "静态图片"} · 本地处理完成`;
     processingState.textContent = "已更新";
     processingState.className = "ready";
     setMessage(deviceReady ? "参数就绪，可以发送" : "照片已就绪，连接眼镜后发送");

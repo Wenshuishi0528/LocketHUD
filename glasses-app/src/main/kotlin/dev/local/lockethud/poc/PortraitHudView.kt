@@ -1,11 +1,12 @@
 package dev.local.lockethud.poc
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.graphics.drawable.Animatable
+import android.graphics.drawable.Drawable
 import android.view.View
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -13,7 +14,6 @@ import java.util.Locale
 
 class PortraitHudView(context: Context) : View(context) {
     private val loader = PortraitAssetLoader(context)
-    private val portraitPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val clockPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.rgb(0, 210, 80)
         textAlign = Paint.Align.CENTER
@@ -21,7 +21,7 @@ class PortraitHudView(context: Context) : View(context) {
     private val minuteFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
     private val portraitRect = RectF()
     private var config = LocketConfig()
-    private var bitmap: Bitmap? = null
+    private var portraitDrawable: Drawable? = null
     private val minuteTick = object : Runnable {
         override fun run() {
             if (config.clockEnabled) {
@@ -41,6 +41,7 @@ class PortraitHudView(context: Context) : View(context) {
         val clockChanged = safe.clockEnabled != config.clockEnabled
         config = safe
         if (reload && width > 0 && height > 0) loadBitmap()
+        updateAnimationState()
         if (clockChanged) scheduleClockIfNeeded()
         invalidate()
     }
@@ -52,17 +53,22 @@ class PortraitHudView(context: Context) : View(context) {
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
+        updateAnimationState()
         scheduleClockIfNeeded()
     }
 
     override fun onDetachedFromWindow() {
+        (portraitDrawable as? Animatable)?.stop()
         removeCallbacks(minuteTick)
         super.onDetachedFromWindow()
     }
 
+    override fun verifyDrawable(who: Drawable): Boolean =
+        who === portraitDrawable || super.verifyDrawable(who)
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val portrait = bitmap
+        val portrait = portraitDrawable
         if (config.visible && portrait != null) {
             val layout = PortraitLayoutCalculator.calculate(
                 viewWidth = width,
@@ -71,24 +77,38 @@ class PortraitHudView(context: Context) : View(context) {
                 insetTop = paddingTop,
                 insetRight = paddingRight,
                 insetBottom = paddingBottom,
-                bitmapAspectRatio = portrait.width.toFloat() / portrait.height.coerceAtLeast(1),
+                bitmapAspectRatio = portrait.intrinsicWidth.toFloat() / portrait.intrinsicHeight.coerceAtLeast(1),
                 anchor = config.anchor,
                 size = config.size,
             )
-            portraitPaint.alpha = (config.opacity * 255f).toInt().coerceIn(0, 255)
             portraitRect.set(layout.left, layout.top, layout.right, layout.bottom)
-            canvas.drawBitmap(portrait, null, portraitRect, portraitPaint)
+            portrait.alpha = (config.opacity * 255f).toInt().coerceIn(0, 255)
+            portrait.setBounds(
+                portraitRect.left.toInt(),
+                portraitRect.top.toInt(),
+                portraitRect.right.toInt(),
+                portraitRect.bottom.toInt(),
+            )
+            portrait.draw(canvas)
         }
         if (config.clockEnabled) drawClock(canvas)
     }
 
     private fun loadBitmap() {
-        bitmap = loader.load(
+        (portraitDrawable as? Animatable)?.stop()
+        portraitDrawable?.callback = null
+        portraitDrawable = loader.load(
             config.assetId,
             (width * config.size.widthRatio).toInt().coerceAtLeast(1),
             height.coerceAtLeast(1),
-        )
+        ).mutate().also { it.callback = this }
+        updateAnimationState()
         invalidate()
+    }
+
+    private fun updateAnimationState() {
+        val animation = portraitDrawable as? Animatable ?: return
+        if (config.visible && isAttachedToWindow) animation.start() else animation.stop()
     }
 
     private fun drawClock(canvas: Canvas) {
