@@ -1,0 +1,12 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "permissions": [],
+  "window": {
+    "navigationBarTitleText": "照片浮窗",
+    "viewport": {
+      "width": "device-width"
+    }
+  }
+}

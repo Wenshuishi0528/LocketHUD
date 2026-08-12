@@ -13,8 +13,20 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
-const PACKAGE: &str = "dev.local.lockethud.poc";
-const COMPONENT: &str = "dev.local.lockethud.poc/.MainActivity";
+const LEGACY_PACKAGE: &str = "dev.local.lockethud.poc";
+const LEGACY_COMPONENT: &str = "dev.local.lockethud.poc/.MainActivity";
+const AIUI_HOST_PACKAGE: &str = "com.rokid.os.sprite.assistserver";
+const AIUI_SERVICE: &str = "com.rokid.os.sprite.assistserver/com.rokid.os.sprite.jsai.JsaiService";
+const AIUI_AGENT_ID: &str = "fea33d142f1443b282eb9c3a62d54183";
+const LEGACY_AIUI_AGENT_ID: &str = "lockethud-photo";
+const AIUI_REMOTE_DIRECTORY: &str = "/sdcard/jsai/package";
+const AIUI_AGENTS: &str = include_str!("../../../aiui-app/AGENTS.md");
+const AIUI_APP_JS: &str = include_str!("../../../aiui-app/app.js");
+const AIUI_APP_JSON: &str = include_str!("../../../aiui-app/app.json");
+const AIUI_PAGE_TEMPLATE: &str = include_str!("../../../aiui-app/pages/index/index.ink");
+const AIUI_ICON: &[u8] = include_bytes!("../../../aiui-app/assets/icon.png");
+const AIUI_DEFAULT_PORTRAIT: &[u8] =
+    include_bytes!("../../../aiui-app/assets/portrait_default.png");
 const REMOTE_DIRECTORY: &str = "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits";
 const REMOTE_PNG_FILE: &str =
     "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits/current.png";
@@ -320,8 +332,261 @@ fn get_device_status() -> DeviceStatus {
     inspect_device()
 }
 
+struct AiuiBuild {
+    workspace: PathBuf,
+    aix_path: PathBuf,
+    md5: String,
+}
+
+fn render_aiui_page(image_src: &str, settings: &GlassesSettings) -> String {
+    AIUI_PAGE_TEMPLATE
+        .replace(
+            "imageSrc: '/assets/portrait_default.png'",
+            &format!("imageSrc: '{image_src}'"),
+        )
+        .replace(
+            "anchorClass: 'right_middle'",
+            &format!("anchorClass: '{}'", settings.anchor),
+        )
+        .replace(
+            "sizeClass: 'small'",
+            &format!("sizeClass: '{}'", settings.size),
+        )
+        .replace(
+            "opacityClass: 'opacity_60'",
+            &format!(
+                "opacityClass: 'opacity_{}'",
+                (settings.opacity * 100.0).round() as u32
+            ),
+        )
+        .replace(
+            "visibilityClass: 'shown'",
+            &format!(
+                "visibilityClass: '{}'",
+                if settings.visible { "shown" } else { "hidden" }
+            ),
+        )
+}
+
+fn build_aiui_aix(
+    cache: &Path,
+    processed_path: Option<&str>,
+    settings: &GlassesSettings,
+) -> Result<AiuiBuild, String> {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| error.to_string())?
+        .as_nanos();
+    let workspace = cache.join(format!("aiui-send-{nonce}"));
+    let package_dir = workspace.join("package");
+    let assets_dir = package_dir.join("assets");
+    let page_dir = package_dir.join("pages/index");
+    fs::create_dir_all(&assets_dir).map_err(|error| format!("无法创建 AIUI 图片包：{error}"))?;
+    fs::create_dir_all(&page_dir).map_err(|error| format!("无法创建 AIUI 页面包：{error}"))?;
+
+    let image_src = if let Some(path_text) = processed_path {
+        let source = PathBuf::from(path_text);
+        let extension = source
+            .extension()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        let target_name = if extension.eq_ignore_ascii_case("gif") {
+            "current.gif"
+        } else if extension.eq_ignore_ascii_case("png") {
+            "current.png"
+        } else {
+            return Err("处理后的 PNG/GIF 不存在，请重新选择照片".into());
+        };
+        fs::copy(&source, assets_dir.join(target_name))
+            .map_err(|_| "处理后的图片不存在，请重新选择照片".to_string())?;
+        format!("/assets/{target_name}")
+    } else {
+        "/assets/portrait_default.png".into()
+    };
+
+    fs::write(package_dir.join("AGENTS.md"), AIUI_AGENTS)
+        .map_err(|error| format!("无法写入 AIUI 清单：{error}"))?;
+    fs::write(package_dir.join("app.js"), AIUI_APP_JS)
+        .map_err(|error| format!("无法写入 AIUI 应用：{error}"))?;
+    fs::write(package_dir.join("app.json"), AIUI_APP_JSON)
+        .map_err(|error| format!("无法写入 AIUI 配置：{error}"))?;
+    fs::write(
+        page_dir.join("index.ink"),
+        render_aiui_page(&image_src, settings),
+    )
+    .map_err(|error| format!("无法写入 AIUI 页面：{error}"))?;
+    fs::write(assets_dir.join("icon.png"), AIUI_ICON)
+        .map_err(|error| format!("无法写入 AIUI 图标：{error}"))?;
+    fs::write(
+        assets_dir.join("portrait_default.png"),
+        AIUI_DEFAULT_PORTRAIT,
+    )
+    .map_err(|error| format!("无法写入 AIUI 测试图：{error}"))?;
+
+    let version_hex = format!(
+        "{:x}",
+        Sha256::digest(format!("{nonce}:{image_src}:{}", settings.anchor).as_bytes())
+    );
+    let version = format!(
+        "{}-{}-{}-{}-{}",
+        &version_hex[0..8],
+        &version_hex[8..12],
+        &version_hex[12..16],
+        &version_hex[16..20],
+        &version_hex[20..32]
+    );
+    fs::write(package_dir.join("VERSION"), version)
+        .map_err(|error| format!("无法写入 AIUI 版本：{error}"))?;
+
+    let aix_path = workspace.join("lockethud-photo.aix");
+    let zip = Command::new("/usr/bin/zip")
+        .args(["-X", "-q", "-r"])
+        .arg(&aix_path)
+        .arg(".")
+        .current_dir(&package_dir)
+        .output()
+        .map_err(|error| format!("无法打包 AIUI 文件：{error}"))?;
+    if !zip.status.success() {
+        return Err("AIUI 文件打包失败".into());
+    }
+    let aix = fs::read(&aix_path).map_err(|error| format!("无法读取 AIUI 文件：{error}"))?;
+    Ok(AiuiBuild {
+        workspace,
+        aix_path,
+        md5: format!("{:x}", md5::compute(aix)),
+    })
+}
+
+fn install_aiui_portrait(
+    app: &tauri::AppHandle,
+    adb: &Path,
+    processed_path: Option<&str>,
+    settings: &GlassesSettings,
+) -> Result<(), String> {
+    let cache = app
+        .path()
+        .app_cache_dir()
+        .map_err(|error| format!("无法取得应用缓存目录：{error}"))?;
+    fs::create_dir_all(&cache).map_err(|error| format!("无法创建应用缓存：{error}"))?;
+    let build = build_aiui_aix(&cache, processed_path, settings)?;
+    let result = (|| {
+        let remote_file = format!(
+            "{AIUI_REMOTE_DIRECTORY}/{AIUI_AGENT_ID}_0.1.0_{}.aix",
+            &build.md5[..8]
+        );
+        let remote_index = format!("{AIUI_REMOTE_DIRECTORY}/agents_index.json");
+        let local_index = build.workspace.join("agents_index.json");
+        let pulled_index = build.workspace.join("agents_index.original.json");
+        let _ = Command::new(adb)
+            .args(["pull", &remote_index])
+            .arg(&pulled_index)
+            .output();
+
+        let mut agents: Vec<serde_json::Value> = fs::read_to_string(&pulled_index)
+            .ok()
+            .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+            .and_then(|value| {
+                value
+                    .get("agents")
+                    .and_then(|items| items.as_array())
+                    .cloned()
+            })
+            .unwrap_or_default();
+        let previous_files: Vec<String> = agents
+            .iter()
+            .filter(|agent| {
+                matches!(
+                    agent.get("agentId").and_then(|value| value.as_str()),
+                    Some(AIUI_AGENT_ID) | Some(LEGACY_AIUI_AGENT_ID)
+                )
+            })
+            .filter_map(|agent| agent.get("filePath").and_then(|value| value.as_str()))
+            .filter(|path| {
+                path.starts_with(&format!("{AIUI_REMOTE_DIRECTORY}/{AIUI_AGENT_ID}_"))
+                    || path.starts_with(&format!(
+                        "{AIUI_REMOTE_DIRECTORY}/{LEGACY_AIUI_AGENT_ID}_"
+                    ))
+            })
+            .map(str::to_string)
+            .collect();
+        agents.retain(|agent| {
+            !matches!(
+                agent.get("agentId").and_then(|value| value.as_str()),
+                Some(AIUI_AGENT_ID) | Some(LEGACY_AIUI_AGENT_ID)
+            )
+        });
+        let updated_at = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map_err(|error| error.to_string())?
+            .as_millis() as u64;
+        agents.push(serde_json::json!({
+            "agentId": AIUI_AGENT_ID,
+            "agentName": "照片浮窗",
+            "agentDesc": "Display a locally transferred photo or animated GIF",
+            "agentLogo": "",
+            "url": "",
+            "permissions": [],
+            "nativeVersion": "0.1.0",
+            "fileMd5": build.md5,
+            "filePath": remote_file,
+            "updatedAt": updated_at
+        }));
+        fs::write(
+            &local_index,
+            serde_json::to_vec(&serde_json::json!({ "agents": agents }))
+                .map_err(|error| error.to_string())?,
+        )
+        .map_err(|error| format!("无法更新 AIUI 索引：{error}"))?;
+
+        run_adb(adb, &["shell", "am", "force-stop", AIUI_HOST_PACKAGE])?;
+        for previous in previous_files {
+            if previous != remote_file {
+                let _ = run_adb(adb, &["shell", "rm", "-f", &previous]);
+            }
+        }
+        run_adb(adb, &["shell", "mkdir", "-p", AIUI_REMOTE_DIRECTORY])?;
+        run_adb(
+            adb,
+            &["push", &build.aix_path.to_string_lossy(), &remote_file],
+        )?;
+        run_adb(
+            adb,
+            &["push", &local_index.to_string_lossy(), &remote_index],
+        )?;
+        run_adb(
+            adb,
+            &[
+                "push",
+                &local_index.to_string_lossy(),
+                &format!("{remote_index}.bak"),
+            ],
+        )?;
+        run_adb(adb, &["shell", "input", "keyevent", "224"])?;
+        let open_params = format!("'{{\"agentId\":\"{AIUI_AGENT_ID}\"}}'");
+        run_adb(
+            adb,
+            &[
+                "shell",
+                "am",
+                "startservice",
+                "-n",
+                AIUI_SERVICE,
+                "-a",
+                "com.rokid.os.sprite.jsai.OPEN_PAGE",
+                "--es",
+                "open_params",
+                &open_params,
+            ],
+        )?;
+        Ok(())
+    })();
+    let _ = fs::remove_dir_all(&build.workspace);
+    result
+}
+
 #[tauri::command]
 fn send_to_glasses(
+    app: tauri::AppHandle,
     processed_path: Option<String>,
     settings: GlassesSettings,
 ) -> Result<SendResult, String> {
@@ -334,6 +599,20 @@ fn send_to_glasses(
         return Err("眼镜已连接，但尚未安装 LocketHUD 显示应用".into());
     }
     let adb = find_adb().ok_or_else(|| "Mac 上没有找到 adb".to_string())?;
+
+    let aiui_available = run_adb(&adb, &["shell", "pm", "path", AIUI_HOST_PACKAGE])
+        .map(|output| output.contains("package:"))
+        .unwrap_or(false);
+    if aiui_available {
+        install_aiui_portrait(&app, &adb, processed_path.as_deref(), &settings)?;
+        return Ok(SendResult {
+            message: if settings.visible {
+                "已发送到 AIUI 眼镜端并开始显示".into()
+            } else {
+                "已同步设置并隐藏 AIUI 画面".into()
+            },
+        });
+    }
 
     let asset = if let Some(path_text) = processed_path {
         let path = PathBuf::from(path_text);
@@ -359,7 +638,7 @@ fn send_to_glasses(
         "default"
     };
 
-    run_adb(&adb, &["shell", "am", "force-stop", PACKAGE])?;
+    run_adb(&adb, &["shell", "am", "force-stop", LEGACY_PACKAGE])?;
     let opacity = format!("{:.1}", settings.opacity);
     let keep_screen_on = settings.keep_screen_on.to_string();
     let visible = settings.visible.to_string();
@@ -370,7 +649,7 @@ fn send_to_glasses(
             "am",
             "start",
             "-n",
-            COMPONENT,
+            LEGACY_COMPONENT,
             "--es",
             "mode",
             "portrait",
@@ -524,16 +803,24 @@ fn inspect_device() -> DeviceStatus {
         .split_whitespace()
         .find_map(|field| field.strip_prefix("model:"))
         .map(|value| value.replace('_', " "));
-    let package_installed = run_adb(&adb, &["shell", "pm", "path", PACKAGE])
+    let legacy_installed = run_adb(&adb, &["shell", "pm", "path", LEGACY_PACKAGE])
         .map(|output| output.contains("package:"))
         .unwrap_or(false);
+    let aiui_installed = run_adb(&adb, &["shell", "pm", "path", AIUI_HOST_PACKAGE])
+        .map(|output| output.contains("package:"))
+        .unwrap_or(false);
+    let package_installed = aiui_installed || legacy_installed;
     DeviceStatus {
         connected: true,
         usb_connected: true,
         model,
         package_installed,
         message: if package_installed {
-            "眼镜已连接，显示应用可用".into()
+            if aiui_installed {
+                "眼镜已连接，AIUI 显示端可用".into()
+            } else {
+                "眼镜已连接，显示应用可用".into()
+            }
         } else {
             "眼镜已连接，尚未安装显示应用".into()
         },
@@ -640,6 +927,24 @@ mod tests {
         assert!(values.iter().all(|value| (0.0..=255.0).contains(value)));
         assert_eq!(values[0], 0.0);
         assert_eq!(values[4], 255.0);
+    }
+
+    #[test]
+    fn aiui_page_uses_mac_display_settings() {
+        let settings = GlassesSettings {
+            anchor: "left_bottom".into(),
+            size: "large".into(),
+            opacity: 0.8,
+            keep_screen_on: true,
+            visible: false,
+            render_profile: "quantized_16".into(),
+        };
+        let page = render_aiui_page("/assets/current.gif", &settings);
+        assert!(page.contains("imageSrc: '/assets/current.gif'"));
+        assert!(page.contains("anchorClass: 'left_bottom'"));
+        assert!(page.contains("sizeClass: 'large'"));
+        assert!(page.contains("opacityClass: 'opacity_80'"));
+        assert!(page.contains("visibilityClass: 'hidden'"));
     }
 
     #[test]

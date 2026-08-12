@@ -1,0 +1,26 @@
+{
+  "name": "lockethud-aiui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AIUI display client for 乐奇相片hud",
+  "main": "app.js",
+  "scripts": {
+    "prepare:craft": "node scripts/prepare-craft-import.mjs",
+    "pack:aix": "node scripts/pack-aix.mjs",
+    "verify:aix": "node scripts/verify-aix.mjs",
+    "device:install": "node scripts/install-device-aix.mjs",
+    "test": "node --test test/project.test.js",
+    "validate": "node scripts/validate-project.mjs",
+    "check": "npm run test && npm run validate"
+  },
+  "dependencies": {
+    "@yodaos-pkg/ink": "0.14.0"
+  },
+  "devDependencies": {
+    "@yodaos-pkg/aix": "0.6.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

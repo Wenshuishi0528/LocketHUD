@@ -15,6 +15,8 @@ artifacts/*.aab
 artifacts/*.png
 artifacts/*.log
 artifacts/*.dmg
+artifacts/*.aix
+artifacts/aiui/
 mac-editor/node_modules/
 mac-editor/dist/
 mac-editor/src-tauri/target/
@@ -23,6 +25,8 @@ mac-editor/src-tauri/icons/*
 !mac-editor/src-tauri/icons/icon.png
 !mac-editor/src-tauri/icons/icon.icns
 !mac-editor/src-tauri/icons/lockethud-source.svg
+aiui-app/node_modules/
+aiui-app/dist/
 *.jks
 *.keystore
 keystore.properties
