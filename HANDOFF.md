@@ -4,8 +4,8 @@
 
 ## 1. 当前结论
 
-- Mac 软件：`乐奇相片hud` 0.1.4，作者 `wenshuishi0528`。
-- AIUI 智能体：`照片浮窗` 1.0.0，Agent ID `fea33d142f1443b282eb9c3a62d54183`。
+- Mac 软件：`乐奇相片hud` 0.1.5 AIUI版，作者 `wenshuishi0528`。
+- GitHub AIUI 包：`照片浮窗` 1.0.1，Agent ID `fea33d142f1443b282eb9c3a62d54183`。
 - AIUI Studio 账号：`wenshuishi26`；icon、预览图和 AIX 已上传并正式提交，当前状态为“审核中”。审核通过前不能描述为已公开上架。
 - 产品边界保持不变：Mac 负责选图、GIF 解码、图像处理、位置、大小、透明度和 USB 发送；眼镜端只负责最终显示。
 - 原生 Android `glasses-app/` 仍保留为兼容/回退方案，当前主线改为 AIUI。
@@ -22,7 +22,7 @@
 ## 3. 当前架构
 
 - `mac-editor/`：Tauri 2 + TypeScript/Vite + Rust。导入 PNG、JPEG、HEIC、WebP 或 GIF，完成绿色显示处理并预览 448×352 AIUI 画面。
-- `aiui-app/`：AIUI 显示代码、测试和基础 AIX。固定 448×352，支持六个位置、96/140/190 三档大小、40/60/80/100 四档透明度。
+- `aiui-app/`：AIUI 显示代码、测试和基础 AIX。固定显示一张已由 Mac 合成完成的 448×352 PNG/GIF，不再负责位置、尺寸或透明度缩放。
 - `store-assets/`：AIUI icon 源文件和 512×512 上传成品。
 - `test-assets/synthetic-portraits/`：程序生成的绿色小人测试素材。
 - `glasses-app/`：旧的原生 Android 显示端，保留但不再作为主发布路径。
@@ -30,17 +30,19 @@
 
 每次点击“发送到眼镜”时，Mac 会：
 
-1. 在本地处理静态照片或 GIF 的全部帧，并应用当前显示参数。
-2. 动态生成一个包含画面、参数和 AIUI 代码的 AIX。
-3. 通过 USB/ADB 写入眼镜 AIUI 本地目录，更新 Agent 索引并打开正式 Agent ID。
-4. 删除旧开发 ID `lockethud-photo` 的索引和文件，防止出现重复入口。
+1. 从源图一次缩放到最终 96/140/190 像素宽（高图同时限制在 316 像素高），完成绿色处理和最终锐化。
+2. 把位置、透明度和显示/隐藏烘焙进完整 448×352 PNG 或 GIF 的每一帧。
+3. 动态生成一个只按 1:1 显示该完整画面的 AIX。
+4. 通过 USB/ADB 写入眼镜 AIUI 本地目录，更新 Agent 索引并打开正式 Agent ID。
+5. 删除旧开发 ID `lockethud-photo` 的索引和文件，防止出现重复入口。
 
 动态 AIX 会保留在眼镜本地，所以退出后再次打开仍能看到最后发送的画面。没有云端图片上传路径。
 
 ## 4. AIUI 发布资料
 
 - 智能体名称：`照片浮窗`
-- 版本：`1.0.0`
+- AIUI Studio 已提交版本：`1.0.0`（审核中）
+- GitHub 独立 AIUI 版本：`1.0.1`
 - 分类：`生活`
 - Agent ID：`fea33d142f1443b282eb9c3a62d54183`
 - 当前状态：`审核中`
@@ -55,16 +57,15 @@
 
 若审核通过，不需要重复提交。若被退回，只针对明确反馈修改并重新提交。
 
-## 5. 最终成品
+## 5. 最终 AIUI 1.0.1 成品
 
-- Mac DMG：`artifacts/LocketHUD-0.1.4-arm64.dmg`
-  - 大小：2,405,155 bytes
-  - SHA-256：`c9a8dee76e436f98bd2a2af181876c8522f32ad0cab620b4bd7a7e780bfc60f4`
-- AIUI AIX：`artifacts/PhotoFloatingWindow-AIUI-1.0.0.aix`
-  - 大小：20,587 bytes
-  - SHA-256：`3c2e7e8f49b7f724cb53bf71c11e855f3a56e0125d98bfe6d13adb2514e381d1`
-  - 内部 VERSION：`6926bd26-a440-4c59-ac8c-dcd04052ec39`
-- AIUI icon：`artifacts/PhotoFloatingWindow-icon-512.png`
+- Mac DMG：`artifacts/LocketHUD-AIUI-Mac-0.1.5-arm64.dmg`
+  - 大小：2,416,198 bytes
+  - SHA-256：`8b2c4fc7a59f398d1f87975ad5e070a5a8c3644a77bda6575c856abe7b47dc2e`
+- AIUI AIX：`artifacts/PhotoFloatingWindow-AIUI-1.0.1.aix`
+  - 大小：22,852 bytes
+  - SHA-256：`d13eb0589084db6031e6f979ead589968a2cf77baa39ad4a6934e3b62f4b4040`
+- AIUI icon：`artifacts/PhotoFloatingWindow-AIUI-icon-512.png`
   - 512×512 PNG，大小 15,747 bytes
   - SHA-256：`41382878348562ca461b043cafd9eae3eb31355b2ee12e851a37aaae2a979cec`
 - 本机安装：`/Applications/乐奇相片hud.app`
@@ -97,15 +98,16 @@ npm run tauri build
 
 ```sh
 codesign --verify --deep --strict "/Applications/乐奇相片hud.app"
-hdiutil verify "/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC/artifacts/LocketHUD-0.1.4-arm64.dmg"
+hdiutil verify "/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC/artifacts/LocketHUD-AIUI-Mac-0.1.5-arm64.dmg"
 ```
 
 已完成的必要验证：
 
 - AIUI 检查 2/2 通过，AIX 官方格式验证通过，共 10 个条目。
-- Rust 测试 5/5、Mac 前端生产构建、Tauri release 打包通过。
+- Rust 定向测试 6/6、Mac 前端生产构建、Tauri release 打包通过。
 - Mac App 严格签名检查和 DMG 完整性检查通过。
 - RG-glasses 实机发送成功，正式 Agent ID 能启动和显示。
+- 实机动态 AIX 只含一张 448×352 `display_frame.png`；眼镜截图中的 AIUI 显示区域与其逐像素比较差异为 0，确认没有二次缩放。
 - 设备迁移清理后，本地 AIUI 索引只保留正式 Agent ID，没有旧开发入口。
 - AIUI Studio 指令测试“打开照片浮窗”通过，并显示“提交成功”。
 

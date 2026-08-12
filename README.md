@@ -4,7 +4,7 @@
   <img src="docs/images/lockethud-cover.png" alt="乐奇相片hud 绿色微笑小人图标" width="220">
 </p>
 
-“乐奇相片hud”（代码名 LocketHUD）是在 Mac 上处理相片、并把最终画面显示到 Rokid 眼镜视野边缘的本地软件。当前主线由 Mac 0.1.4 编辑器和 AIUI 智能体“照片浮窗”1.0.0 组成；仓库同时保留原生 Android 显示端作为兼容/回退方案。
+“乐奇相片hud”（代码名 LocketHUD）是在 Mac 上处理相片、并把最终画面显示到 Rokid 眼镜视野边缘的本地软件。当前 GitHub 主线由 Mac 0.1.5 AIUI版和“照片浮窗”1.0.1 组成；仓库与历史 Release 继续保留 0.1.4 及原生 Android 显示端，不覆盖、不删除。
 
 ## 实际显示效果
 
@@ -14,7 +14,7 @@
 
 实拍图展示了绿色人物轮廓在眼镜视野右下角的效果。位置、大小、透明度和相片处理参数均由 Mac 软件调整，眼镜端负责最终显示。
 
-Current conclusion: `AIUI_1.0_SUBMITTED_FOR_REVIEW`; `MAC_EDITOR_0.1.4_IMPLEMENTED`. The AIUI display path passed on the Rokid RG-glasses. Product control intentionally stays on the Mac: select/process a photo or GIF, preview it, adjust position/size/opacity, and send it over the existing local USB/ADB connection. Physical touchpad mapping is not on the active development path.
+Current conclusion: `AIUI_1.0.1_GITHUB_RELEASE`; `MAC_EDITOR_0.1.5_IMPLEMENTED`. The official AIUI Studio 1.0.0 submission remains under review. The local AIUI display path passed on the Rokid RG-glasses. Product control intentionally stays on the Mac: select/process a photo or GIF, preview it, adjust position/size/opacity, and send it over the existing local USB/ADB connection.
 
 ## Scope implemented
 
@@ -31,7 +31,8 @@ Current conclusion: `AIUI_1.0_SUBMITTED_FOR_REVIEW`; `MAC_EDITOR_0.1.4_IMPLEMENT
 - Offline Pillow CLI for green conversion, gamma, contrast, sharpening, 8/16-level quantization, and Floyd-Steinberg dithering.
 - Program-generated calibration and synthetic portrait assets only.
 - Tauri 2 Mac editor with local image selection, green conversion, 8/16-level quantization, dithering, gamma, contrast, sharpening, layout preview, device detection, and one-click ADB delivery.
-- 448×352 AIUI display client named “照片浮窗”; Mac dynamically creates a local AIX containing the current processed photo/GIF and settings.
+- 448×352 AIUI display client named “照片浮窗”; Mac resizes the source once to its final display size, bakes position and opacity into a complete 448×352 PNG/GIF frame, and dynamically creates the local AIX.
+- AIUI displays that complete frame at 1:1 size; it no longer scales a separate 96/140/190-pixel portrait component.
 - The last transferred AIX remains on the glasses, so reopening the agent restores the last screen without uploading the source photo to a cloud service.
 - AIUI package requests no network, camera, speech, or microphone permission.
 
@@ -39,9 +40,18 @@ The Android fallback package name remains `dev.local.lockethud.poc`; it is not t
 
 The Mac application displays `乐奇相片hud`; the AIUI agent displays `照片浮窗`. Their icons use the same green outlined smiling figure; the Mac icon has a transparent exterior outside its rounded square.
 
-## Download 0.1.4
+## AIUI版下载（Mac 0.1.5 / 照片浮窗 1.0.1）
 
-The public release contains the Mac application, AIUI package, fallback Android APK, review icon, and checksums: [乐奇相片hud / 照片浮窗 0.1.4](https://github.com/Wenshuishi0528/LocketHUD/releases/tag/v0.1.4).
+高清晰度 AIUI 版使用单次缩放和完整画面输出，与旧版分开发布：[照片浮窗 AIUI 1.0.1](https://github.com/Wenshuishi0528/LocketHUD/releases/tag/aiui-v1.0.1)。
+
+- `LocketHUD-AIUI-Mac-0.1.5-arm64.dmg`：Apple Silicon Mac 软件，界面明确标注“AIUI版”。
+- `PhotoFloatingWindow-AIUI-1.0.1.aix`：448×352 AIUI 基础包。
+- `PhotoFloatingWindow-AIUI-icon-512.png`：AIUI icon。
+- `SHA256SUMS-AIUI-1.0.1.txt`：本次 AIUI 版全部发布文件的 SHA-256。
+
+## 历史版本 0.1.4（保留）
+
+原有 Release 继续保留 Mac、AIUI 1.0.0、原生 Android APK 回退包和校验文件：[乐奇相片hud / 照片浮窗 0.1.4](https://github.com/Wenshuishi0528/LocketHUD/releases/tag/v0.1.4)。
 
 - `LocketHUD-0.1.4-arm64.dmg`: Apple Silicon Mac application; the installed name is “乐奇相片hud”.
 - `PhotoFloatingWindow-AIUI-1.0.0.aix`: AIUI glasses package; the intelligent-agent name is “照片浮窗”.
@@ -137,4 +147,4 @@ The processor does not modify the source, does not connect to a network, preserv
 - [Changelog](CHANGELOG.md)
 - [Development handoff](HANDOFF.md)
 
-Open the Mac editor, connect the glasses by USB, select a photo or GIF, adjust it in the 448×352 AIUI preview, and press “发送到眼镜”. ADB is the V1 development transport; a consumer transport is deliberately deferred. The official AIUI Studio project has been submitted and remains publicly unavailable until Rokid approves it.
+Open the Mac editor, connect the glasses by USB, select a photo or GIF, adjust it in the 448×352 AIUI preview, and press “发送到眼镜”. ADB is the V1 development transport. GitHub AIUI 1.0.1 is separately available; the official AIUI Studio 1.0.0 submission remains publicly unavailable until Rokid approves it.

@@ -18,7 +18,7 @@ for (const requiredName of [
   'app.json',
   'pages/index/index.ink',
   'assets/icon.png',
-  'assets/portrait_default.png',
+  'assets/display_default.png',
 ]) {
   assert.ok(names.includes(requiredName), `AIX is missing ${requiredName}`);
 }

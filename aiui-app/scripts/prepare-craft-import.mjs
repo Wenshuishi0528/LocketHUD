@@ -10,7 +10,7 @@ const runtimeFiles = [
   'app.json',
   'pages/index/index.ink',
   'assets/icon.png',
-  'assets/portrait_default.png',
+  'assets/display_default.png',
 ];
 
 await rm(output, { recursive: true, force: true });

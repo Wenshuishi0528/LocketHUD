@@ -48,8 +48,8 @@ interface SendResult {
 const defaults: EditorSettings = {
   anchor: "right_middle",
   size: "small",
-  opacity: 0.6,
-  profile: "quantized-16",
+  opacity: 1,
+  profile: "natural-green",
   gamma: 1,
   contrast: 1,
   sharpen: 0.35,
@@ -57,13 +57,14 @@ const defaults: EditorSettings = {
   visible: true,
 };
 
-const saved = localStorage.getItem("lockethud-editor-settings");
+const settingsKey = "lockethud-editor-settings-aiui-frame-v2";
+const saved = localStorage.getItem(settingsKey);
 let settings: EditorSettings = defaults;
 if (saved) {
   try {
     settings = { ...defaults, ...(JSON.parse(saved) as Partial<EditorSettings>) };
   } catch {
-    localStorage.removeItem("lockethud-editor-settings");
+    localStorage.removeItem(settingsKey);
   }
 }
 
@@ -82,7 +83,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         </span>
         <div>
           <h1>乐奇相片hud</h1>
-          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.4 · 作者 wenshuishi0528</span></p>
+          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.5 AIUI版 · 作者 wenshuishi0528</span></p>
         </div>
       </div>
       <button class="device-pill" id="refresh-device" type="button" aria-label="刷新眼镜连接状态">
@@ -233,7 +234,7 @@ const keepScreenControl = element<HTMLInputElement>("#keep-screen-control");
 const visibleControl = element<HTMLInputElement>("#visible-control");
 
 function saveSettings(): void {
-  localStorage.setItem("lockethud-editor-settings", JSON.stringify(settings));
+  localStorage.setItem(settingsKey, JSON.stringify(settings));
 }
 
 function syncControls(): void {
@@ -318,13 +319,14 @@ async function processPhoto(): Promise<void> {
   processingState.textContent = "处理中…";
   processingState.className = "busy";
   try {
+    const targetWidth = { small: 96, medium: 140, large: 190 }[settings.size];
     const result = await invoke<PreparedPortrait>("prepare_portrait", {
       sourcePath,
       profile: settings.profile,
       gamma: settings.gamma,
       contrast: settings.contrast,
       sharpen: settings.sharpen,
-      maxWidth: 240,
+      maxWidth: targetWidth,
     });
     if (sequence !== processingSequence) return;
     prepared = result;
@@ -345,7 +347,11 @@ async function processPhoto(): Promise<void> {
 
 function scheduleProcessing(): void {
   window.clearTimeout(processingTimer);
-  if (sourcePath) processingTimer = window.setTimeout(() => void processPhoto(), 180);
+  if (sourcePath) {
+    prepared = null;
+    updateSendState();
+    processingTimer = window.setTimeout(() => void processPhoto(), 180);
+  }
 }
 
 async function refreshDevice(): Promise<void> {
@@ -414,6 +420,7 @@ document.querySelectorAll<HTMLButtonElement>("[data-size]").forEach((button) => 
     settings.size = button.dataset.size as PortraitSize;
     saveSettings();
     syncControls();
+    scheduleProcessing();
   });
 });
 
