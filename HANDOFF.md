@@ -32,27 +32,27 @@
 
 Mac 编辑器通过 Rust 命令执行三件事：
 
-1. 使用 macOS `sips` 规范化用户选择的图片，再在本地进行绿色单色、Gamma、对比度、锐化、量化或抖动处理。
+1. 静态图片使用 macOS `sips` 规范化；GIF 由 Rust 逐帧解码。两者都在本地进行绿色单色、Gamma、对比度、锐化、量化或抖动处理。
 2. 检测 RG-glasses 的 USB 枚举、ADB 状态和眼镜显示 APK。
-3. 用 ADB 将处理后的 `current.png` 推送到应用专属目录，再用白名单 Intent extras 启动显示 Activity。
+3. 用 ADB 将处理后的 `current.png` 或 `current.gif` 推送到应用专属目录，再用白名单 Intent extras 启动显示 Activity。
 
 没有云端、账号、分析 SDK、网络同步服务或无认证监听端口。
 
 ## 4. 当前版本和构建物
 
-- Mac 编辑器：0.1.2，用户可见名称“乐奇相片hud”，Apple Silicon arm64。
+- Mac 编辑器：0.1.3，用户可见名称“乐奇相片hud”，Apple Silicon arm64。
 - `/Applications/乐奇相片hud.app` 已安装并启动；旧英文版已移入废纸篓，可恢复。
-- Android 显示端：0.1.2（versionCode 3），用户可见名称“乐奇相片hud”。
+- Android 显示端：0.1.3（versionCode 4），用户可见名称“乐奇相片hud”。
 - Mac 图标源：`mac-editor/src-tauri/icons/lockethud-source.svg`。
 - Mac 和 Android 启动图标均使用绿色微笑小人；头身相切连接并保留亮绿色轮廓。
 - Mac 图标圆角外区域为真实透明像素，不是白底。
 - App Bundle 已包含 `Contents/Resources/icon.icns`，其 SHA-256 与源码生成的 `icon.icns` 一致。
-- Mac DMG：`artifacts/LocketHUD-0.1.2-arm64.dmg`。
-- Mac DMG 大小：2,330,557 bytes。
-- Mac DMG SHA-256：`53900868230e72847ef1eeccd2183424f301be774d9576cb4ac55a7136867302`。
-- Android APK：`artifacts/LocketHUD-Glasses-0.1.2-debug.apk`。
-- Android APK 大小：2,607,462 bytes。
-- Android APK SHA-256：`a5d8e4b911d1f8bb5c1dbc7e06aff32285a3f2359ff5e9d89a765df9a7898f2a`。
+- Mac DMG：`artifacts/LocketHUD-0.1.3-arm64.dmg`。
+- Mac DMG 大小：2,365,022 bytes。
+- Mac DMG SHA-256：`63362c3ceac387eeff5074e0cbc7b8c8d8376bfa0f4b004d7e46bf4bdbbdbaa9`。
+- Android APK：`artifacts/LocketHUD-Glasses-0.1.3-debug.apk`。
+- Android APK 大小：2,544,469 bytes。
+- Android APK SHA-256：`949d589323e8b5cd694a442f523909e672bd74c7c601ff9736aeb11a0fe9e51f`。
 
 DMG 是完整 ad-hoc 签名但未经过 Apple notarization，只用于当前 Mac 本地安装。不要将其描述为可公开分发或已公证版本。
 
@@ -74,7 +74,7 @@ npm run tauri build
 codesign --verify --deep --strict \
   "src-tauri/target/release/bundle/macos/乐奇相片hud.app"
 hdiutil verify \
-  "src-tauri/target/release/bundle/dmg/乐奇相片hud_0.1.2_aarch64.dmg"
+  "src-tauri/target/release/bundle/dmg/乐奇相片hud_0.1.3_aarch64.dmg"
 ```
 
 Android 显示端仅在相关代码改变时重跑：
@@ -95,6 +95,9 @@ python3 -m unittest discover -s tools/tests -v
 - Mac 编辑器能区分 USB 未连接、USB 已连接但 ADB 不可用、ADB 在线但 APK 未安装、完全就绪四类状态。
 - 用户已确认从 Mac 编辑器发送样本照片到眼镜成功。
 - 眼镜端返回键隐藏不再持久化；从启动器后台重开或冷启动都会恢复上一张照片并显示。
+- GIF 会保持动画并循环播放；后台重开或冷启动后继续显示最后发送的 GIF。
+- RG-glasses 已用程序生成的两帧 GIF 实机验证播放与冷启动恢复；验证没有改动已有私人静态照片，随后已切回静态照片。
+- 项目采用 `CC BY 4.0`，署名为 `wenshuishi0528`；第三方依赖保持各自许可证。
 
 ## 7. 连接注意事项
 
@@ -114,8 +117,8 @@ python3 -m unittest discover -s tools/tests -v
 
 ## 9. 下一步优先级
 
-1. 请用户目视确认带亮绿色描边的小人图标在访达、Dock、DMG 和眼镜启动器中符合预期；0.1.2 已安装并打开。
-2. 用用户选择的样本照片再做一次 0.1.2 发送冒烟测试。
+1. 用用户选择的 GIF 动图确认 Mac 预览和眼镜循环播放速度符合预期。
+2. 用静态照片再做一次 0.1.3 发送冒烟测试，确认原有路径无回归。
 3. 若用户需要，增加“恢复上次照片”或最近照片列表；仍须保持源照片仅在本地。
 4. 只有用户明确要求后，才设计配对和加密的消费者传输；不要直接开放无认证局域网端口。
 5. 在不插 USB 的情况下测量用户可接受的实际续航，再决定是否移除 `POC0_PASS_WITH_LIMITATIONS`。

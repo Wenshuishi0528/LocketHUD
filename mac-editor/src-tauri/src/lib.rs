@@ -1,10 +1,13 @@
 use base64::Engine;
-use image::{imageops, DynamicImage, GrayImage, ImageFormat, Rgba, RgbaImage};
+use image::codecs::gif::{GifDecoder, GifEncoder, Repeat};
+use image::{
+    imageops, AnimationDecoder, DynamicImage, Frame, GrayImage, ImageFormat, Rgba, RgbaImage,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::env;
-use std::fs;
-use std::io::Cursor;
+use std::fs::{self, File};
+use std::io::{BufReader, Cursor};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -13,8 +16,10 @@ use tauri::Manager;
 const PACKAGE: &str = "dev.local.lockethud.poc";
 const COMPONENT: &str = "dev.local.lockethud.poc/.MainActivity";
 const REMOTE_DIRECTORY: &str = "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits";
-const REMOTE_FILE: &str =
+const REMOTE_PNG_FILE: &str =
     "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits/current.png";
+const REMOTE_GIF_FILE: &str =
+    "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits/current.gif";
 
 #[derive(Serialize)]
 struct PreparedPortrait {
@@ -23,6 +28,7 @@ struct PreparedPortrait {
     width: u32,
     height: u32,
     sha256: String,
+    animated: bool,
 }
 
 #[derive(Serialize)]
@@ -125,6 +131,17 @@ fn prepare_portrait(
         .duration_since(UNIX_EPOCH)
         .map_err(|error| error.to_string())?
         .as_nanos();
+
+    if source
+        .extension()
+        .and_then(|value| value.to_str())
+        .is_some_and(|value| value.eq_ignore_ascii_case("gif"))
+    {
+        return prepare_animated_gif(
+            &source, &cache, nonce, &profile, gamma, contrast, sharpen, max_width,
+        );
+    }
+
     let normalized_path = cache.join(format!("source-{nonce}.png"));
 
     let normalized = Command::new("/usr/bin/sips")
@@ -135,49 +152,20 @@ fn prepare_portrait(
         .output()
         .map_err(|error| format!("无法启动 macOS 图片转换工具：{error}"))?;
     if !normalized.status.success() {
-        return Err("无法读取该图片；请改用 PNG、JPEG、HEIC 或 WebP".into());
+        return Err("无法读取该图片；请改用 PNG、JPEG、HEIC、WebP 或 GIF".into());
     }
 
     let decoded =
         image::open(&normalized_path).map_err(|error| format!("图片解码失败：{error}"))?;
-    let source_rgba = decoded.to_rgba8();
-    let scale = (max_width as f32 / source_rgba.width() as f32)
-        .min(1024.0 / source_rgba.height() as f32)
-        .min(1.0);
-    let width = ((source_rgba.width() as f32 * scale).round() as u32).max(1);
-    let height = ((source_rgba.height() as f32 * scale).round() as u32).max(1);
-    let resized = imageops::resize(&source_rgba, width, height, imageops::FilterType::Lanczos3);
-
-    let mut gray = GrayImage::new(width, height);
-    for (x, y, pixel) in resized.enumerate_pixels() {
-        let luminance = 0.299 * pixel[0] as f32 + 0.587 * pixel[1] as f32 + 0.114 * pixel[2] as f32;
-        let contrasted = (((luminance / 255.0 - 0.5) * contrast) + 0.5).clamp(0.0, 1.0);
-        let corrected = contrasted.powf(1.0 / gamma) * 255.0;
-        gray.put_pixel(x, y, image::Luma([corrected.round() as u8]));
-    }
-
-    if sharpen > 0.0 {
-        let blurred = imageops::blur(&gray, 1.0);
-        for (original, soft) in gray.pixels_mut().zip(blurred.pixels()) {
-            let value = original[0] as f32 + sharpen * (original[0] as f32 - soft[0] as f32);
-            original[0] = value.clamp(0.0, 255.0).round() as u8;
-        }
-    }
-
-    let mut values: Vec<f32> = gray.pixels().map(|pixel| pixel[0] as f32).collect();
-    match profile.as_str() {
-        "quantized-8" => quantize_all(&mut values, 8),
-        "quantized-16" => quantize_all(&mut values, 16),
-        "dithered" => dither(&mut values, width as usize, height as usize, 8),
-        _ => {}
-    }
-
-    let mut output = RgbaImage::new(width, height);
-    for (index, pixel) in output.pixels_mut().enumerate() {
-        let green = values[index].clamp(0.0, 255.0).round() as u8;
-        let alpha = resized.as_raw()[index * 4 + 3];
-        *pixel = Rgba([0, green, (green as f32 * 0.30).round() as u8, alpha]);
-    }
+    let output = process_frame(
+        &decoded.to_rgba8(),
+        &profile,
+        gamma,
+        contrast,
+        sharpen,
+        max_width,
+    );
+    let (width, height) = output.dimensions();
 
     let mut cursor = Cursor::new(Vec::new());
     DynamicImage::ImageRgba8(output)
@@ -199,7 +187,132 @@ fn prepare_portrait(
         width,
         height,
         sha256,
+        animated: false,
     })
+}
+
+fn prepare_animated_gif(
+    source: &Path,
+    cache: &Path,
+    nonce: u128,
+    profile: &str,
+    gamma: f32,
+    contrast: f32,
+    sharpen: f32,
+    max_width: u32,
+) -> Result<PreparedPortrait, String> {
+    if fs::metadata(source)
+        .map_err(|error| error.to_string())?
+        .len()
+        > 32 * 1024 * 1024
+    {
+        return Err("GIF 文件不能超过 32 MB".into());
+    }
+    let file = File::open(source).map_err(|error| format!("无法读取 GIF：{error}"))?;
+    let decoder =
+        GifDecoder::new(BufReader::new(file)).map_err(|error| format!("GIF 解码失败：{error}"))?;
+    let frames = decoder
+        .into_frames()
+        .collect_frames()
+        .map_err(|error| format!("GIF 帧读取失败：{error}"))?;
+    if frames.is_empty() {
+        return Err("GIF 中没有可显示的画面".into());
+    }
+    if frames.len() > 300 {
+        return Err("GIF 帧数不能超过 300 帧".into());
+    }
+
+    let mut bytes = Vec::new();
+    let mut output_size = None;
+    {
+        let mut encoder = GifEncoder::new(&mut bytes);
+        encoder
+            .set_repeat(Repeat::Infinite)
+            .map_err(|error| format!("无法设置 GIF 循环：{error}"))?;
+        for frame in frames {
+            let delay = frame.delay();
+            let output = process_frame(
+                &frame.into_buffer(),
+                profile,
+                gamma,
+                contrast,
+                sharpen,
+                max_width,
+            );
+            output_size.get_or_insert(output.dimensions());
+            encoder
+                .encode_frame(Frame::from_parts(output, 0, 0, delay))
+                .map_err(|error| format!("GIF 编码失败：{error}"))?;
+        }
+    }
+
+    if bytes.len() > 32 * 1024 * 1024 {
+        return Err("处理后的 GIF 超过 32 MB；请缩短动画或减少帧数".into());
+    }
+    let (width, height) = output_size.ok_or_else(|| "GIF 中没有可显示的画面".to_string())?;
+    let output_path = cache.join(format!("portrait-{nonce}.gif"));
+    fs::write(&output_path, &bytes).map_err(|error| format!("无法保存 GIF：{error}"))?;
+    let sha256 = format!("{:x}", Sha256::digest(&bytes));
+    let data_url = format!(
+        "data:image/gif;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(&bytes)
+    );
+    Ok(PreparedPortrait {
+        data_url,
+        output_path: output_path.to_string_lossy().into_owned(),
+        width,
+        height,
+        sha256,
+        animated: true,
+    })
+}
+
+fn process_frame(
+    source_rgba: &RgbaImage,
+    profile: &str,
+    gamma: f32,
+    contrast: f32,
+    sharpen: f32,
+    max_width: u32,
+) -> RgbaImage {
+    let scale = (max_width as f32 / source_rgba.width() as f32)
+        .min(1024.0 / source_rgba.height() as f32)
+        .min(1.0);
+    let width = ((source_rgba.width() as f32 * scale).round() as u32).max(1);
+    let height = ((source_rgba.height() as f32 * scale).round() as u32).max(1);
+    let resized = imageops::resize(source_rgba, width, height, imageops::FilterType::Lanczos3);
+
+    let mut gray = GrayImage::new(width, height);
+    for (x, y, pixel) in resized.enumerate_pixels() {
+        let luminance = 0.299 * pixel[0] as f32 + 0.587 * pixel[1] as f32 + 0.114 * pixel[2] as f32;
+        let contrasted = (((luminance / 255.0 - 0.5) * contrast) + 0.5).clamp(0.0, 1.0);
+        let corrected = contrasted.powf(1.0 / gamma) * 255.0;
+        gray.put_pixel(x, y, image::Luma([corrected.round() as u8]));
+    }
+
+    if sharpen > 0.0 {
+        let blurred = imageops::blur(&gray, 1.0);
+        for (original, soft) in gray.pixels_mut().zip(blurred.pixels()) {
+            let value = original[0] as f32 + sharpen * (original[0] as f32 - soft[0] as f32);
+            original[0] = value.clamp(0.0, 255.0).round() as u8;
+        }
+    }
+
+    let mut values: Vec<f32> = gray.pixels().map(|pixel| pixel[0] as f32).collect();
+    match profile {
+        "quantized-8" => quantize_all(&mut values, 8),
+        "quantized-16" => quantize_all(&mut values, 16),
+        "dithered" => dither(&mut values, width as usize, height as usize, 8),
+        _ => {}
+    }
+
+    let mut output = RgbaImage::new(width, height);
+    for (index, pixel) in output.pixels_mut().enumerate() {
+        let green = values[index].clamp(0.0, 255.0).round() as u8;
+        let alpha = resized.as_raw()[index * 4 + 3];
+        *pixel = Rgba([0, green, (green as f32 * 0.30).round() as u8, alpha]);
+    }
+    output
 }
 
 #[tauri::command]
@@ -224,13 +337,24 @@ fn send_to_glasses(
 
     let asset = if let Some(path_text) = processed_path {
         let path = PathBuf::from(path_text);
-        if !path.is_file() || path.extension().and_then(|value| value.to_str()) != Some("png") {
-            return Err("处理后的 PNG 不存在，请重新选择照片".into());
+        let extension = path
+            .extension()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default();
+        let (remote_file, asset) = if extension.eq_ignore_ascii_case("gif") {
+            (REMOTE_GIF_FILE, "private_gif")
+        } else if extension.eq_ignore_ascii_case("png") {
+            (REMOTE_PNG_FILE, "private")
+        } else {
+            return Err("处理后的 PNG/GIF 不存在，请重新选择照片".into());
+        };
+        if !path.is_file() {
+            return Err("处理后的图片不存在，请重新选择照片".into());
         }
         run_adb(&adb, &["shell", "mkdir", "-p", REMOTE_DIRECTORY])?;
         let local_path = path.to_string_lossy().into_owned();
-        run_adb(&adb, &["push", &local_path, REMOTE_FILE])?;
-        "private"
+        run_adb(&adb, &["push", &local_path, remote_file])?;
+        asset
     } else {
         "default"
     };
@@ -516,5 +640,50 @@ mod tests {
         assert!(values.iter().all(|value| (0.0..=255.0).contains(value)));
         assert_eq!(values[0], 0.0);
         assert_eq!(values[4], 255.0);
+    }
+
+    #[test]
+    fn animated_gif_keeps_multiple_frames() {
+        let test_dir = env::temp_dir().join(format!(
+            "lockethud-gif-test-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap()
+                .as_nanos(),
+        ));
+        fs::create_dir_all(&test_dir).unwrap();
+        let source = test_dir.join("source.gif");
+        let mut source_bytes = Vec::new();
+        {
+            let mut encoder = GifEncoder::new(&mut source_bytes);
+            encoder.set_repeat(Repeat::Infinite).unwrap();
+            for green in [80, 220] {
+                let frame = RgbaImage::from_pixel(8, 12, Rgba([0, green, 0, 255]));
+                encoder
+                    .encode_frame(Frame::from_parts(
+                        frame,
+                        0,
+                        0,
+                        image::Delay::from_numer_denom_ms(120, 1),
+                    ))
+                    .unwrap();
+            }
+        }
+        fs::write(&source, source_bytes).unwrap();
+
+        let prepared =
+            prepare_animated_gif(&source, &test_dir, 1, "natural-green", 1.0, 1.0, 0.0, 240)
+                .unwrap();
+        let output = File::open(&prepared.output_path).unwrap();
+        let frames = GifDecoder::new(BufReader::new(output))
+            .unwrap()
+            .into_frames()
+            .collect_frames()
+            .unwrap();
+
+        assert!(prepared.animated);
+        assert_eq!(frames.len(), 2);
+        assert_eq!((prepared.width, prepared.height), (8, 12));
+        fs::remove_dir_all(test_dir).unwrap();
     }
 }

@@ -9,7 +9,7 @@ class LocketConfigTest {
     @Test
     fun codecRoundTripPreservesSupportedValues() {
         val original = LocketConfig(
-            assetId = LocketConfig.ASSET_PRIVATE,
+            assetId = LocketConfig.ASSET_PRIVATE_GIF,
             anchor = AnchorPreset.LEFT_BOTTOM,
             size = SizePreset.LARGE,
             opacity = 0.6f,

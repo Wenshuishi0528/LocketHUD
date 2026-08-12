@@ -71,7 +71,8 @@ data class LocketConfig(
         const val CURRENT_SCHEMA_VERSION = 1
         const val ASSET_DEFAULT = "portrait_default"
         const val ASSET_PRIVATE = "portrait_private"
-        val ALLOWED_ASSET_IDS = setOf(ASSET_DEFAULT, ASSET_PRIVATE)
+        const val ASSET_PRIVATE_GIF = "portrait_private_gif"
+        val ALLOWED_ASSET_IDS = setOf(ASSET_DEFAULT, ASSET_PRIVATE, ASSET_PRIVATE_GIF)
     }
 }
 

@@ -27,6 +27,7 @@ Current conclusion: `POC0_PASS_WITH_LIMITATIONS`; `V1_MAC_EDITOR_IMPLEMENTED`. T
 - First-back hide, second-back exit fallback; no unverified Rokid key code is bound.
 - Debug-only minimal, calibration, input-probe, and validated Intent controls.
 - Private PNG import from app-specific storage with size, format, and dimension validation.
+- Animated GIF import, frame-by-frame green processing, Mac preview, transfer, playback, and relaunch persistence.
 - Offline Pillow CLI for green conversion, gamma, contrast, sharpening, 8/16-level quantization, and Floyd-Steinberg dithering.
 - Program-generated calibration and synthetic portrait assets only.
 - Tauri 2 Mac editor with local image selection, green conversion, 8/16-level quantization, dithering, gamma, contrast, sharpening, layout preview, device detection, and one-click ADB delivery.
@@ -35,12 +36,12 @@ The temporary package name is `dev.local.lockethud.poc`; it must be replaced bef
 
 Both installed applications display the name `乐奇相片hud`. Their launcher icons use the same green smiling figure; the Mac icon has a transparent exterior outside its rounded square.
 
-## Download 0.1.2
+## Download 0.1.3
 
-The public release contains both applications and their checksums: [乐奇相片hud 0.1.2](https://github.com/Wenshuishi0528/LocketHUD/releases/tag/v0.1.2).
+The public release contains both applications and their checksums: [乐奇相片hud 0.1.3](https://github.com/Wenshuishi0528/LocketHUD/releases/tag/v0.1.3).
 
-- `LocketHUD-0.1.2-arm64.dmg`: Apple Silicon Mac application; the installed name is “乐奇相片hud”.
-- `LocketHUD-Glasses-0.1.2-debug.apk`: Rokid glasses Android application; the launcher name is “乐奇相片hud”.
+- `LocketHUD-0.1.3-arm64.dmg`: Apple Silicon Mac application; the installed name is “乐奇相片hud”.
+- `LocketHUD-Glasses-0.1.3-debug.apk`: Rokid glasses Android application; the launcher name is “乐奇相片hud”.
 
 No private source portrait selected in the application is stored in this repository or its releases. The two product-introduction images above are published with the author's permission.
 
@@ -101,6 +102,10 @@ tools/install_private_portrait.sh local_assets/processed/current.png
 ```
 
 The processor does not modify the source, does not connect to a network, preserves alpha, and writes PNGs without copying EXIF metadata. The import script writes only to this debug application's app-specific directory.
+
+## License
+
+© 2026 [wenshuishi0528](https://github.com/Wenshuishi0528). This project is licensed under the [Creative Commons Attribution 4.0 International License](LICENSE) (`CC BY 4.0`). Reuse must provide appropriate attribution, a link to the license, and indicate whether changes were made. Third-party dependencies retain their own licenses.
 
 ## Evidence and next action
 

@@ -1,0 +1,2 @@
+63362c3ceac387eeff5074e0cbc7b8c8d8376bfa0f4b004d7e46bf4bdbbdbaa9  LocketHUD-0.1.3-arm64.dmg
+949d589323e8b5cd694a442f523909e672bd74c7c601ff9736aeb11a0fe9e51f  LocketHUD-Glasses-0.1.3-debug.apk

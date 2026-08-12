@@ -145,6 +145,7 @@ class MainActivity : Activity() {
         val asset = when (intent.getStringExtra("asset")) {
             "default" -> LocketConfig.ASSET_DEFAULT
             "private" -> LocketConfig.ASSET_PRIVATE
+            "private_gif" -> LocketConfig.ASSET_PRIVATE_GIF
             else -> null
         }
         val keepScreenOn = strictBoolean(intent.getStringExtra("keep_screen_on"))
