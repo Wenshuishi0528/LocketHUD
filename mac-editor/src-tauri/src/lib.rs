@@ -20,13 +20,15 @@ const AIUI_SERVICE: &str = "com.rokid.os.sprite.assistserver/com.rokid.os.sprite
 const AIUI_AGENT_ID: &str = "fea33d142f1443b282eb9c3a62d54183";
 const LEGACY_AIUI_AGENT_ID: &str = "lockethud-photo";
 const AIUI_REMOTE_DIRECTORY: &str = "/sdcard/jsai/package";
+const AIUI_FRAME_WIDTH: u32 = 448;
+const AIUI_FRAME_HEIGHT: u32 = 352;
+const AIUI_FRAME_MARGIN: u32 = 18;
 const AIUI_AGENTS: &str = include_str!("../../../aiui-app/AGENTS.md");
 const AIUI_APP_JS: &str = include_str!("../../../aiui-app/app.js");
 const AIUI_APP_JSON: &str = include_str!("../../../aiui-app/app.json");
 const AIUI_PAGE_TEMPLATE: &str = include_str!("../../../aiui-app/pages/index/index.ink");
 const AIUI_ICON: &[u8] = include_bytes!("../../../aiui-app/assets/icon.png");
-const AIUI_DEFAULT_PORTRAIT: &[u8] =
-    include_bytes!("../../../aiui-app/assets/portrait_default.png");
+const AIUI_DEFAULT_FRAME: &[u8] = include_bytes!("../../../aiui-app/assets/display_default.png");
 const REMOTE_DIRECTORY: &str = "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits";
 const REMOTE_PNG_FILE: &str =
     "/sdcard/Android/data/dev.local.lockethud.poc/files/portraits/current.png";
@@ -287,8 +289,9 @@ fn process_frame(
     sharpen: f32,
     max_width: u32,
 ) -> RgbaImage {
+    let max_height = AIUI_FRAME_HEIGHT - AIUI_FRAME_MARGIN * 2;
     let scale = (max_width as f32 / source_rgba.width() as f32)
-        .min(1024.0 / source_rgba.height() as f32)
+        .min(max_height as f32 / source_rgba.height() as f32)
         .min(1.0);
     let width = ((source_rgba.width() as f32 * scale).round() as u32).max(1);
     let height = ((source_rgba.height() as f32 * scale).round() as u32).max(1);
@@ -338,34 +341,105 @@ struct AiuiBuild {
     md5: String,
 }
 
-fn render_aiui_page(image_src: &str, settings: &GlassesSettings) -> String {
-    AIUI_PAGE_TEMPLATE
-        .replace(
-            "imageSrc: '/assets/portrait_default.png'",
-            &format!("imageSrc: '{image_src}'"),
-        )
-        .replace(
-            "anchorClass: 'right_middle'",
-            &format!("anchorClass: '{}'", settings.anchor),
-        )
-        .replace(
-            "sizeClass: 'small'",
-            &format!("sizeClass: '{}'", settings.size),
-        )
-        .replace(
-            "opacityClass: 'opacity_60'",
-            &format!(
-                "opacityClass: 'opacity_{}'",
-                (settings.opacity * 100.0).round() as u32
-            ),
-        )
-        .replace(
-            "visibilityClass: 'shown'",
-            &format!(
-                "visibilityClass: '{}'",
-                if settings.visible { "shown" } else { "hidden" }
-            ),
-        )
+fn render_aiui_page(image_src: &str) -> String {
+    AIUI_PAGE_TEMPLATE.replace(
+        "imageSrc: '/assets/display_default.png'",
+        &format!("imageSrc: '{image_src}'"),
+    )
+}
+
+fn frame_origin(width: u32, height: u32, anchor: &str) -> (u32, u32) {
+    let x = if anchor.starts_with("left_") {
+        AIUI_FRAME_MARGIN
+    } else {
+        AIUI_FRAME_WIDTH.saturating_sub(AIUI_FRAME_MARGIN + width)
+    };
+    let y = if anchor.ends_with("_top") {
+        AIUI_FRAME_MARGIN
+    } else if anchor.ends_with("_bottom") {
+        AIUI_FRAME_HEIGHT.saturating_sub(AIUI_FRAME_MARGIN + height)
+    } else {
+        AIUI_FRAME_HEIGHT.saturating_sub(height) / 2
+    };
+    (x, y)
+}
+
+fn compose_aiui_frame(portrait: &RgbaImage, settings: &GlassesSettings) -> RgbaImage {
+    let mut frame =
+        RgbaImage::from_pixel(AIUI_FRAME_WIDTH, AIUI_FRAME_HEIGHT, Rgba([0, 0, 0, 255]));
+    if !settings.visible {
+        return frame;
+    }
+    let (origin_x, origin_y) = frame_origin(portrait.width(), portrait.height(), &settings.anchor);
+    for (x, y, pixel) in portrait.enumerate_pixels() {
+        let target_x = origin_x + x;
+        let target_y = origin_y + y;
+        if target_x >= AIUI_FRAME_WIDTH || target_y >= AIUI_FRAME_HEIGHT {
+            continue;
+        }
+        let alpha = (pixel[3] as f32 / 255.0) * settings.opacity;
+        frame.put_pixel(
+            target_x,
+            target_y,
+            Rgba([
+                (pixel[0] as f32 * alpha).round() as u8,
+                (pixel[1] as f32 * alpha).round() as u8,
+                (pixel[2] as f32 * alpha).round() as u8,
+                255,
+            ]),
+        );
+    }
+    frame
+}
+
+fn write_aiui_static_frame(
+    source: &Path,
+    target: &Path,
+    settings: &GlassesSettings,
+) -> Result<(), String> {
+    let portrait = image::open(source)
+        .map_err(|error| format!("无法读取处理后的 PNG：{error}"))?
+        .to_rgba8();
+    compose_aiui_frame(&portrait, settings)
+        .save_with_format(target, ImageFormat::Png)
+        .map_err(|error| format!("无法生成 AIUI 最终画面：{error}"))
+}
+
+fn write_aiui_gif_frame(
+    source: &Path,
+    target: &Path,
+    settings: &GlassesSettings,
+) -> Result<(), String> {
+    let input = File::open(source).map_err(|error| format!("无法读取处理后的 GIF：{error}"))?;
+    let frames = GifDecoder::new(BufReader::new(input))
+        .map_err(|error| format!("GIF 解码失败：{error}"))?
+        .into_frames()
+        .collect_frames()
+        .map_err(|error| format!("GIF 帧读取失败：{error}"))?;
+    let output = File::create(target).map_err(|error| format!("无法创建 AIUI GIF：{error}"))?;
+    let mut encoder = GifEncoder::new(output);
+    encoder
+        .set_repeat(Repeat::Infinite)
+        .map_err(|error| format!("无法设置 GIF 循环：{error}"))?;
+    for frame in frames {
+        let delay = frame.delay();
+        encoder
+            .encode_frame(Frame::from_parts(
+                compose_aiui_frame(&frame.into_buffer(), settings),
+                0,
+                0,
+                delay,
+            ))
+            .map_err(|error| format!("无法生成 AIUI GIF：{error}"))?;
+    }
+    if fs::metadata(target)
+        .map_err(|error| error.to_string())?
+        .len()
+        > 32 * 1024 * 1024
+    {
+        return Err("最终 AIUI GIF 超过 32 MB；请缩短动画或减少帧数".into());
+    }
+    Ok(())
 }
 
 fn build_aiui_aix(
@@ -390,18 +464,24 @@ fn build_aiui_aix(
             .extension()
             .and_then(|value| value.to_str())
             .unwrap_or_default();
-        let target_name = if extension.eq_ignore_ascii_case("gif") {
-            "current.gif"
+        let (target_name, animated) = if extension.eq_ignore_ascii_case("gif") {
+            ("display_frame.gif", true)
         } else if extension.eq_ignore_ascii_case("png") {
-            "current.png"
+            ("display_frame.png", false)
         } else {
             return Err("处理后的 PNG/GIF 不存在，请重新选择照片".into());
         };
-        fs::copy(&source, assets_dir.join(target_name))
-            .map_err(|_| "处理后的图片不存在，请重新选择照片".to_string())?;
+        let target = assets_dir.join(target_name);
+        if animated {
+            write_aiui_gif_frame(&source, &target, settings)?;
+        } else {
+            write_aiui_static_frame(&source, &target, settings)?;
+        }
         format!("/assets/{target_name}")
     } else {
-        "/assets/portrait_default.png".into()
+        fs::write(assets_dir.join("display_default.png"), AIUI_DEFAULT_FRAME)
+            .map_err(|error| format!("无法写入 AIUI 测试画面：{error}"))?;
+        "/assets/display_default.png".into()
     };
 
     fs::write(package_dir.join("AGENTS.md"), AIUI_AGENTS)
@@ -410,19 +490,10 @@ fn build_aiui_aix(
         .map_err(|error| format!("无法写入 AIUI 应用：{error}"))?;
     fs::write(package_dir.join("app.json"), AIUI_APP_JSON)
         .map_err(|error| format!("无法写入 AIUI 配置：{error}"))?;
-    fs::write(
-        page_dir.join("index.ink"),
-        render_aiui_page(&image_src, settings),
-    )
-    .map_err(|error| format!("无法写入 AIUI 页面：{error}"))?;
+    fs::write(page_dir.join("index.ink"), render_aiui_page(&image_src))
+        .map_err(|error| format!("无法写入 AIUI 页面：{error}"))?;
     fs::write(assets_dir.join("icon.png"), AIUI_ICON)
         .map_err(|error| format!("无法写入 AIUI 图标：{error}"))?;
-    fs::write(
-        assets_dir.join("portrait_default.png"),
-        AIUI_DEFAULT_PORTRAIT,
-    )
-    .map_err(|error| format!("无法写入 AIUI 测试图：{error}"))?;
-
     let version_hex = format!(
         "{:x}",
         Sha256::digest(format!("{nonce}:{image_src}:{}", settings.anchor).as_bytes())
@@ -471,7 +542,7 @@ fn install_aiui_portrait(
     let build = build_aiui_aix(&cache, processed_path, settings)?;
     let result = (|| {
         let remote_file = format!(
-            "{AIUI_REMOTE_DIRECTORY}/{AIUI_AGENT_ID}_0.1.0_{}.aix",
+            "{AIUI_REMOTE_DIRECTORY}/{AIUI_AGENT_ID}_1.0.1_{}.aix",
             &build.md5[..8]
         );
         let remote_index = format!("{AIUI_REMOTE_DIRECTORY}/agents_index.json");
@@ -503,9 +574,7 @@ fn install_aiui_portrait(
             .filter_map(|agent| agent.get("filePath").and_then(|value| value.as_str()))
             .filter(|path| {
                 path.starts_with(&format!("{AIUI_REMOTE_DIRECTORY}/{AIUI_AGENT_ID}_"))
-                    || path.starts_with(&format!(
-                        "{AIUI_REMOTE_DIRECTORY}/{LEGACY_AIUI_AGENT_ID}_"
-                    ))
+                    || path.starts_with(&format!("{AIUI_REMOTE_DIRECTORY}/{LEGACY_AIUI_AGENT_ID}_"))
             })
             .map(str::to_string)
             .collect();
@@ -526,7 +595,7 @@ fn install_aiui_portrait(
             "agentLogo": "",
             "url": "",
             "permissions": [],
-            "nativeVersion": "0.1.0",
+            "nativeVersion": "1.0.1",
             "fileMd5": build.md5,
             "filePath": remote_file,
             "updatedAt": updated_at
@@ -930,21 +999,30 @@ mod tests {
     }
 
     #[test]
-    fn aiui_page_uses_mac_display_settings() {
+    fn aiui_page_only_displays_the_precomposed_frame() {
+        let page = render_aiui_page("/assets/display_frame.gif");
+        assert!(page.contains("imageSrc: '/assets/display_frame.gif'"));
+        assert!(page.contains("mode=\"scaleToFill\""));
+        assert!(!page.contains("widthFix"));
+        assert!(!page.contains("anchorClass"));
+        assert!(!page.contains("opacityClass"));
+    }
+
+    #[test]
+    fn aiui_frame_bakes_position_and_opacity() {
+        let portrait = RgbaImage::from_pixel(20, 30, Rgba([0, 200, 60, 255]));
         let settings = GlassesSettings {
-            anchor: "left_bottom".into(),
-            size: "large".into(),
-            opacity: 0.8,
+            anchor: "right_bottom".into(),
+            size: "medium".into(),
+            opacity: 0.4,
             keep_screen_on: true,
-            visible: false,
-            render_profile: "quantized_16".into(),
+            visible: true,
+            render_profile: "natural_green".into(),
         };
-        let page = render_aiui_page("/assets/current.gif", &settings);
-        assert!(page.contains("imageSrc: '/assets/current.gif'"));
-        assert!(page.contains("anchorClass: 'left_bottom'"));
-        assert!(page.contains("sizeClass: 'large'"));
-        assert!(page.contains("opacityClass: 'opacity_80'"));
-        assert!(page.contains("visibilityClass: 'hidden'"));
+        let frame = compose_aiui_frame(&portrait, &settings);
+        assert_eq!(frame.dimensions(), (448, 352));
+        assert_eq!(frame.get_pixel(0, 0), &Rgba([0, 0, 0, 255]));
+        assert_eq!(frame.get_pixel(410, 304), &Rgba([0, 80, 24, 255]));
     }
 
     #[test]
@@ -989,6 +1067,26 @@ mod tests {
         assert!(prepared.animated);
         assert_eq!(frames.len(), 2);
         assert_eq!((prepared.width, prepared.height), (8, 12));
+
+        let settings = GlassesSettings {
+            anchor: "left_top".into(),
+            size: "small".into(),
+            opacity: 1.0,
+            keep_screen_on: true,
+            visible: true,
+            render_profile: "natural_green".into(),
+        };
+        let display_gif = test_dir.join("display.gif");
+        write_aiui_gif_frame(Path::new(&prepared.output_path), &display_gif, &settings).unwrap();
+        let display_frames = GifDecoder::new(BufReader::new(File::open(display_gif).unwrap()))
+            .unwrap()
+            .into_frames()
+            .collect_frames()
+            .unwrap();
+        assert_eq!(display_frames.len(), 2);
+        assert!(display_frames
+            .iter()
+            .all(|frame| frame.buffer().dimensions() == (448, 352)));
         fs::remove_dir_all(test_dir).unwrap();
     }
 }

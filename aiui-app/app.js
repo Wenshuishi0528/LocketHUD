@@ -9,6 +9,6 @@ export default {
     console.log('[photo-hud] app hide');
   },
   globalData: {
-    releaseChannel: 'lockethud-aiui-0.1.0',
+    releaseChannel: 'lockethud-aiui-1.0.1',
   },
 };

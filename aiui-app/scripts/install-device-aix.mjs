@@ -13,7 +13,8 @@ const aixPath = resolve(root, 'dist/lockethud-photo.aix');
 const packageJson = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
 const aix = await readFile(aixPath);
 const md5 = createHash('md5').update(aix).digest('hex');
-const agentId = 'lockethud-photo';
+const agentId = 'fea33d142f1443b282eb9c3a62d54183';
+const legacyAgentId = 'lockethud-photo';
 const remoteDirectory = '/sdcard/jsai/package';
 const remoteFile = `${remoteDirectory}/${agentId}_${packageJson.version}_${md5.slice(0, 8)}.aix`;
 const component = 'com.rokid.os.sprite.assistserver/com.rokid.os.sprite.jsai.JsaiService';
@@ -44,12 +45,13 @@ try {
   } catch {}
 
   const previousFiles = agents
-    .filter((agent) => agent.agentId === agentId)
+    .filter((agent) => agent.agentId === agentId || agent.agentId === legacyAgentId)
     .map((agent) => agent.filePath)
     .filter((filePath) => typeof filePath === 'string'
-      && filePath.startsWith(`${remoteDirectory}/${agentId}_`)
+      && (filePath.startsWith(`${remoteDirectory}/${agentId}_`)
+        || filePath.startsWith(`${remoteDirectory}/${legacyAgentId}_`))
       && filePath !== remoteFile);
-  agents = agents.filter((agent) => agent.agentId !== agentId);
+  agents = agents.filter((agent) => agent.agentId !== agentId && agent.agentId !== legacyAgentId);
   agents.push({
     agentId,
     agentName: '照片浮窗',

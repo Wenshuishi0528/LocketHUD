@@ -1,6 +1,6 @@
 [package]
 name = "lockethud-mac-editor"
-version = "0.1.4"
+version = "0.1.5"
 description = "乐奇相片hud 的本地 Mac 编辑器"
 authors = ["wenshuishi0528"]
 license = "CC-BY-4.0"
