@@ -24,6 +24,18 @@ No unverified Rokid key code is bound. Generic back hides then exits; a debug-on
 
 No INTERNET, camera, microphone, location, storage, overlay, WakeLock, or service permission/component is present. Private PNGs stay in ignored local paths and app-specific device storage. Image processing is local and strips metadata by reconstructing/saving PNG output.
 
-## 2026-08-11 — Product gate
+## 2026-08-11 — Initial product gate
 
-The current decision is `POC0_BLOCKED` because ADB had no device. Do not enter V1 Mac editor work. Revisit V1 only after live installation, optical comfort, rapid hide, persistence, and 30/60-minute power/thermal evidence produce `POC0_PASS` or `POC0_PASS_WITH_LIMITATIONS`.
+The initial decision was `POC0_BLOCKED` because ADB had no device. V1 remained gated pending live installation, optical comfort, rapid hide, persistence, and power/thermal evidence.
+
+## 2026-08-11 — Rokid Android 12 full-screen compatibility
+
+The first device launch crashed because this firmware's `PhoneWindow.getInsetsController()` dereferenced a not-yet-attached DecorView. Full-screen setup was moved after `setContentView` and uses the standard API-32 immersive system-UI flags. The rebuilt APK then cold-started, rendered, and remained stable. No Rokid proprietary API was introduced.
+
+## 2026-08-11 — Device-sized preset correction
+
+Device screenshots showed Medium and Large collapsing to the same width because the side-band margin was subtracted twice. The layout now subtracts the outer margin once and still clamps at the central protection boundary. A regression test was added. Device-visible bounds became approximately 49×98, 62×126, and 73×147 pixels for Small, Medium, and Large.
+
+## 2026-08-11 — Revised product gate
+
+G0 and the standard Android rendering path pass. A 30-minute USB-powered foreground run completed on the same process with no crash, screen-off, or thermal warning. The decision is `POC0_PASS_WITH_LIMITATIONS`: binocular optical judgment, a physical quick-hide mapping, unplugged battery drain, and the optional 60-minute run remain pending. Do not begin V1 Mac editor work until the user accepts at least one optical combination and the physical input path is confirmed.

@@ -76,7 +76,6 @@ class MainActivity : Activity() {
     private fun configureWindow() {
         window.statusBarColor = Color.BLACK
         window.navigationBarColor = Color.BLACK
-        window.insetsController?.hide(WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars())
     }
 
     private fun showCurrentMode() {
@@ -105,6 +104,18 @@ class MainActivity : Activity() {
             }
         }
         setContentView(view)
+        hideSystemBars()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun hideSystemBars() {
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                View.SYSTEM_UI_FLAG_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
     }
 
     private fun applyKeepScreenOn() {

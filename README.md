@@ -2,7 +2,7 @@
 
 LocketHUD POC is an independent, local-only Android prototype for displaying one static portrait at the edge of a Rokid glasses viewport. This repository implements only G0 support and POC-0 from the 2026-08-11 specification. It does not modify the existing level/HUD or translation apps in the parent workspace.
 
-Current conclusion: `POC0_BLOCKED`. The code, tests, debug APK, image tools, and test protocol are ready, but no authorized ADB device was visible during this run. Device identity, installation, optical appearance, input mapping, and endurance therefore remain unverified.
+Current conclusion: `POC0_PASS_WITH_LIMITATIONS`. G0 and the standard Android APK path passed on the connected Rokid RG-glasses: install, launch, rendering, configuration persistence, foreground keep-screen-on behavior, synthetic private-image import, and a 30-minute USB-powered stability run were verified. Binocular optical comfort, physical touchpad/key mapping, unplugged battery drain, and the optional 60-minute run remain open.
 
 ## Scope implemented
 
@@ -79,4 +79,4 @@ The processor does not modify the source, does not connect to a network, preserv
 - [Test results](docs/TEST_RESULTS.md)
 - [Decision log](docs/DECISION_LOG.md)
 
-Connect and authorize the glasses over USB, keep them awake, then resume with the G0 commands in `docs/HARDWARE_REPORT.md`. Do not start the Mac editor, iPhone app, networking, animation, or AI work until optical, input, and power tests produce an actual POC-0 decision.
+The next gate is a seated, wearer-observed optical matrix using the connected build: confirm recognition, ghosting, comfort, distraction, and one acceptable profile/anchor/size combination. Capture the physical quick-hide gesture at the same time. Do not start the Mac editor, iPhone app, networking, animation, or AI work until those two product-experience checks are accepted; rerun endurance unplugged before making any battery-life claim.

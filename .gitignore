@@ -12,6 +12,8 @@ local_assets/*
 !local_assets/.gitkeep
 artifacts/*.apk
 artifacts/*.aab
+artifacts/*.png
+artifacts/*.log
 *.jks
 *.keystore
 keystore.properties

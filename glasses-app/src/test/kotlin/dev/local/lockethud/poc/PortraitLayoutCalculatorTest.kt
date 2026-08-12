@@ -70,4 +70,25 @@ class PortraitLayoutCalculatorTest {
         assertTrue(rect.right <= 450f)
         assertTrue(rect.bottom <= 600f)
     }
+
+    @Test
+    fun sizePresetsRemainDistinctOnDeviceViewport() {
+        val widths = SizePreset.entries.map { size ->
+            PortraitLayoutCalculator.calculate(
+                viewWidth = 480,
+                viewHeight = 640,
+                insetLeft = 0,
+                insetTop = 0,
+                insetRight = 0,
+                insetBottom = 0,
+                bitmapAspectRatio = 0.67f,
+                anchor = AnchorPreset.RIGHT_MIDDLE,
+                size = size,
+            ).width
+        }
+
+        assertTrue(widths[0] < widths[1])
+        assertTrue(widths[1] < widths[2])
+        assertTrue(widths[2] <= 120f)
+    }
 }

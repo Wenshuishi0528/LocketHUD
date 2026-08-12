@@ -4,20 +4,30 @@ Audit date: 2026-08-11 (America/Los_Angeles)
 
 ## Current live result
 
-`adb devices -l` returned an empty device list. No serial number or unique identifier was captured. Because the glasses were not connected and authorized during this run, the following current values are unknown:
+The glasses connected as one authorized USB ADB device. The serial number was deliberately omitted from this report.
 
-- exact manufacturer, model, region, device name, and firmware fingerprint;
-- Android release/API and CPU ABI;
-- physical/logical display size, density, orientation, cutouts, and insets;
-- input devices and key/touch event mappings;
-- current power, battery, thermal, and display policies;
-- whether this exact firmware accepts and launches the standard Android debug APK.
+| Item | Live value |
+|---|---|
+| Manufacturer / model | Rokid / RG-glasses |
+| Product / device | glasses / glasses |
+| Android | 12, API 32 |
+| Firmware fingerprint | `Rokid/glasses/glasses:12/SKQ1.240613.001/1.21.009-20260623-150201:user/release-keys` |
+| Security patch | 2024-07-05 |
+| Build type | user, `ro.debuggable=0` |
+| ABI | arm64-v8a, armeabi-v7a, armeabi |
+| Physical/runtime display | 480×640, portrait rotation 0, 60 Hz |
+| Density | 240 dpi (1.5 logical density) |
+| App viewport | 480×640 with zero display cutout insets |
+| Power at initial audit | USB powered, battery 64%, 25.5°C |
+| Thermal status at initial audit | 0 (no throttling reported) |
 
-Older files in the parent workspace describe prior testing on an `RG-glasses` device with Android 12/API 32, arm64-v8a, and a 480×640 logical display. Those values are historical context only and are not counted as current G0 evidence.
+The standard Android debug APK installed successfully on this user/release-key firmware. `MainActivity` cold-started in 842 ms during the first minimal-mode validation, reached `RESUMED`, drew a full 480×640 surface, and produced non-black device screenshots once the display was awake. The final artifact also passed uninstall/reinstall and then cold-started in 514 ms.
 
-## Required one-time physical action
+The display follows a glasses sleep/wear policy: while asleep, Activity switching can succeed but `screencap` is black and the app Surface is hidden. `KEYCODE_WAKEUP`/wearing the glasses restored the display. Black screenshots captured during `mWakefulness=Asleep` are not rendering failures.
 
-Connect the glasses with a USB data cable, enable/confirm USB debugging on the glasses, and keep the glasses awake. Do not enable root, unlock the bootloader, or change system security settings.
+## Physical connection action
+
+Completed: the glasses were connected with a USB data cable and USB debugging was authorized. Keep the glasses awake or worn for visual screenshots. No root, bootloader change, or system security change was used.
 
 ## Read-only audit commands
 
@@ -45,4 +55,4 @@ Before saving output, redact serial numbers, MAC addresses, advertising identifi
 
 ## G0 hardware status
 
-`BLOCKED_NO_ADB_DEVICE`. Host build readiness is not a substitute for device install, view-size, input, or optical evidence.
+`G0_PASS_STANDARD_ANDROID_PATH`. Device identity, standard APK install/start/exit/uninstall/reinstall, runtime View size, display geometry, and input-device inventory are confirmed. CXR-S remains unintegrated because the standard Android route is sufficient for this POC.

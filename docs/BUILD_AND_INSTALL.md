@@ -15,7 +15,7 @@ Observed result on 2026-08-11:
 
 - Gradle build: pass
 - Android lint: pass (0 errors; informational compatibility/performance warnings reviewed)
-- Kotlin/JUnit tests: 5 tests pass
+- Kotlin/JUnit tests: 6 tests pass
 - Python unittest: 3 tests pass
 - shell syntax and Python byte-compilation checks: pass
 
@@ -25,8 +25,8 @@ Observed result on 2026-08-11:
 - Version: 0.1.0 (1)
 - Build path: `glasses-app/build/outputs/apk/debug/glasses-app-debug.apk`
 - Delivered local path: `artifacts/LocketHUD-POC-0.1.0-debug.apk`
-- Size: 2,541,409 bytes
-- SHA-256: `cd385ecf18aaadec76ffe36b824b3bc396d58e6e3607d1fcf89d0308f290032d`
+- Size: 2,541,381 bytes
+- SHA-256: `ef56faecea8f6dcbb86b4bc8a3905493dc6d73a16961e556513dbbe6cd171f31`
 - Signing: Android debug key, APK Signature Scheme v2; not a release/store signature
 - Manifest permission inspection: no `uses-permission` entries
 
@@ -40,7 +40,9 @@ adb shell am start -W -n dev.local.lockethud.poc/.MainActivity --es mode calibra
 adb shell am start -W -n dev.local.lockethud.poc/.MainActivity --es mode portrait
 ```
 
-The install/start commands were not executed because no authorized device was listed. Do not mark the installation smoke test passed until their output and device-side rendering are recorded.
+Observed device result: streamed install succeeded; minimal mode cold-started in 842 ms during the first validation; `MainActivity` reached `RESUMED`; runtime View and surface were 480×640. Calibration and portrait modes produced distinct, non-black device screenshots with no fatal exception after the full-screen compatibility fix. The final artifact then passed `adb uninstall`, streamed reinstall, and a 514 ms cold start.
+
+A 30-minute 13-second foreground run then completed on the same PID with no crash or screen-off. Thermal status remained 0 and temperature changed from 25.0°C to 22.5°C. The glasses remained USB powered and charged from 85% to 100%, so this run does not establish unplugged battery drain.
 
 ## Debug configuration
 

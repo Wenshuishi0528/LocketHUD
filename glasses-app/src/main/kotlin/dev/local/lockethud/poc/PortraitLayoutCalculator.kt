@@ -29,11 +29,11 @@ object PortraitLayoutCalculator {
         val margin = contentWidth * 0.04f
         val protectedLeft = contentLeft + contentWidth * 0.25f
         val protectedRight = contentLeft + contentWidth * 0.75f
-        val sideLimit = when (anchor.horizontal) {
-            AnchorPreset.Horizontal.LEFT -> protectedLeft - margin
-            AnchorPreset.Horizontal.RIGHT -> contentRight - protectedRight - margin
+        val sideBandWidth = when (anchor.horizontal) {
+            AnchorPreset.Horizontal.LEFT -> protectedLeft - contentLeft
+            AnchorPreset.Horizontal.RIGHT -> contentRight - protectedRight
         }
-        val maxWidth = max(1f, sideLimit - margin)
+        val maxWidth = max(1f, sideBandWidth - margin)
         var portraitWidth = min(contentWidth * size.widthRatio, maxWidth)
         var portraitHeight = portraitWidth / bitmapAspectRatio.coerceAtLeast(0.05f)
         val maxHeight = max(1f, contentHeight - margin * 2f)
