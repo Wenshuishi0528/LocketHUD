@@ -90,5 +90,7 @@ The processor does not modify the source, does not connect to a network, preserv
 - [Test results](docs/TEST_RESULTS.md)
 - [Decision log](docs/DECISION_LOG.md)
 - [Mac editor](docs/MAC_EDITOR.md)
+- [Changelog](CHANGELOG.md)
+- [Development handoff](HANDOFF.md)
 
 Open the Mac editor, connect the glasses by USB, select a photo, adjust it in the 480×640 preview, and press “发送到眼镜”. ADB is the V1 development transport; a consumer transport is deliberately deferred. Unplugged endurance is still required before making any battery-life claim.

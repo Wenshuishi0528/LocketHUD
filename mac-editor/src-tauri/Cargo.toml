@@ -1,6 +1,6 @@
 [package]
 name = "lockethud-mac-editor"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local Mac editor for LocketHUD"
 authors = ["LocketHUD"]
 edition = "2021"

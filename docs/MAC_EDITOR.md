@@ -7,13 +7,13 @@ The Mac editor owns photo selection, local green-screen processing, layout previ
 ## Delivered application
 
 - Product: `LocketHUD Editor`
-- Version: 0.1.0
+- Version: 0.1.1
 - Architecture: Apple Silicon arm64
 - Stack: Tauri 2, TypeScript/Vite, Rust
 - Application bundle: `mac-editor/src-tauri/target/release/bundle/macos/LocketHUD Editor.app`
-- Install image: `artifacts/LocketHUD-Editor-0.1.0-arm64.dmg`
-- DMG size: 2,009,245 bytes
-- DMG SHA-256: `015aedf6fc96fa4c8867484ac0d667636e7a6bedbb72bbd384091e61501f14da`
+- Install image: `artifacts/LocketHUD-Editor-0.1.1-arm64.dmg`
+- DMG size: 3,556,268 bytes
+- DMG SHA-256: `df8c94021942cc033af298b478958833a533b7bb028f59e7ca52a4c5fa239d94`
 - Signing: complete ad-hoc bundle signature; strict `codesign` verification passes
 - Notarization: not notarized; local development use only
 
@@ -37,7 +37,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 npm run tauri build
 codesign --verify --deep --strict "src-tauri/target/release/bundle/macos/LocketHUD Editor.app"
-hdiutil verify "src-tauri/target/release/bundle/dmg/LocketHUD Editor_0.1.0_aarch64.dmg"
+hdiutil verify "src-tauri/target/release/bundle/dmg/LocketHUD Editor_0.1.1_aarch64.dmg"
 ```
 
 - TypeScript/Vite production build: pass.
