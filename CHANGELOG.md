@@ -2,6 +2,43 @@
 
 本文件记录 LocketHUD 用户可见的版本变化。日期采用 `YYYY-MM-DD`。
 
+## [Mac 0.1.4 / AIUI 1.0.0] - 2026-08-12
+
+### Added
+
+- 增加 448×352 AIUI 眼镜显示端，支持静态照片和 GIF 动图、六个位置、三档大小、四档透明度。
+- Mac 每次发送时会在本地生成包含当前处理画面和参数的 AIX，并通过 USB 安装到眼镜；最后发送的画面会保留在眼镜本地。
+- AIUI 官方智能体使用名称“照片浮窗”，Agent ID 为 `fea33d142f1443b282eb9c3a62d54183`。
+- AIUI 介绍和启动提示中加入软件下载地址：`https://github.com/Wenshuishi0528/LocketHUD`。
+
+### Changed
+
+- Mac 更新至 0.1.4，并改为向正式 AIUI Agent ID 发送；发送时会清理旧开发 ID `lockethud-photo`，避免眼镜出现两个同类入口。
+- AIUI 智能体使用简洁的深色底、亮绿色描边微笑小人 icon；上传的预览素材和默认画面全部为程序生成的测试素材，不含私人照片。
+- AIUI 应用不申请网络、相机、语音或麦克风权限。
+
+### Published
+
+- 已向 AIUI Studio 上传 icon、4 张测试预览图和 AIX，并提交 1.0.0 审核；当前状态为“审核中”。
+
+### Verified
+
+- AIUI 检查 2/2、AIX 官方格式验证、Mac Rust 测试 5/5、前端生产构建和 Tauri release 打包通过。
+- DMG 完整性和 Mac App 严格签名检查通过。
+- 已在 RG-glasses 实机发送并打开正式 Agent ID；迁移后设备索引只保留一个正式“乐奇相片hud”本地包。
+
+## [Glasses 0.1.4] - 2026-08-12
+
+### Fixed
+
+- 针对审核“没有 icon”的反馈，将眼镜 APK 从 `@drawable` 矢量图标改为审核系统更容易识别的标准 `mipmap` PNG 图标。
+- 增加 `android:roundIcon`，并提供可单独上传审核的 512×512 不透明 PNG 图标。
+
+### Changed
+
+- 图标简化为深色方形底和亮绿色微笑小人，不含文字、渐变、透明边缘或额外装饰。
+- 原生 Android 眼镜端更新为 0.1.4（versionCode 5），作为兼容/回退方案；当前主线 Mac 端为 0.1.4，眼镜显示主线改用 AIUI 1.0.0。
+
 ## [0.1.3] - 2026-08-11
 
 ### Added

@@ -1,6 +1,6 @@
 [package]
 name = "lockethud-mac-editor"
-version = "0.1.3"
+version = "0.1.4"
 description = "乐奇相片hud 的本地 Mac 编辑器"
 authors = ["wenshuishi0528"]
 license = "CC-BY-4.0"
@@ -16,7 +16,9 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 base64 = "0.22"
 image = { version = "0.25", default-features = false, features = ["gif", "png"] }
+md5 = "0.7"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 sha2 = "0.10"
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"

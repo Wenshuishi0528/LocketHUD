@@ -1,64 +1,89 @@
-# 乐奇相片hud 开发交接
+# 乐奇相片hud / 照片浮窗开发交接
 
-更新时间：2026-08-11（America/Los_Angeles）
+更新时间：2026-08-12（America/Los_Angeles）
 
 ## 1. 当前结论
 
-- 眼镜端 POC：`POC0_PASS_WITH_LIMITATIONS`。
-- Mac 端：`V1_MAC_EDITOR_IMPLEMENTED`，用户已用自己选择的样本照片成功发送到眼镜。
-- 用户确认默认绿色小人在眼镜中没有重影。
-- 当前产品边界：Mac 负责选图、处理、预览、参数和发送；眼镜应用只负责最终显示。
-- 不再继续眼镜端 Input Probe 或物理触控映射。用户明确认为这些调整应在 Mac 完成。
+- Mac 软件：`乐奇相片hud` 0.1.4，作者 `wenshuishi0528`。
+- AIUI 智能体：`照片浮窗` 1.0.0，Agent ID `fea33d142f1443b282eb9c3a62d54183`。
+- AIUI Studio 账号：`wenshuishi26`；icon、预览图和 AIX 已上传并正式提交，当前状态为“审核中”。审核通过前不能描述为已公开上架。
+- 产品边界保持不变：Mac 负责选图、GIF 解码、图像处理、位置、大小、透明度和 USB 发送；眼镜端只负责最终显示。
+- 原生 Android `glasses-app/` 仍保留为兼容/回退方案，当前主线改为 AIUI。
 
 ## 2. 仓库与隐私边界
 
-- 仓库：`/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC`
-- 分支：`main`
-- 公开 GitHub 项目：`https://github.com/Wenshuishi0528/LocketHUD`
-- GitHub 源码只包含源码、文档和程序生成的测试素材；Release 另附 Mac DMG 与眼镜 APK。用户照片、截图、日志和构建缓存不上传。
-- Android 包名：`dev.local.lockethud.poc`
-- Mac bundle identifier：`dev.local.lockethud.mac`
-- 用户私人照片不得放入 Git、Android resources、测试资源或任何远程仓库。
-- `local_assets/`、APK、DMG、截图和构建目录均被 Git 忽略。
+- 本地仓库：`/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC`
+- GitHub：`https://github.com/Wenshuishi0528/LocketHUD`
+- 用户私人照片不得进入 Git、发布素材、测试资源或远程仓库。
+- AIUI 商店包、icon 和预览使用的都是绿色小人等程序生成素材，不含私人照片。
+- 用户选择的照片/GIF 只在 Mac 本地处理，并通过 USB 写入用户自己的眼镜；AIUI 应用不申请网络、相机、语音或麦克风权限。
+- 项目采用 CC BY 4.0，署名为 `wenshuishi0528`；第三方依赖保持各自许可证。
 
-## 3. 目录与架构
+## 3. 当前架构
 
-- `glasses-app/`：Kotlin/Android 原生显示端，普通全屏 Activity + Canvas/View。
-- `mac-editor/`：Tauri 2、TypeScript/Vite 前端、Rust 后端。
-- `tools/prepare_portrait.py`：Pillow 离线图片处理 CLI。
-- `artifacts/`：本地 APK、DMG 和实机截图，不提交 Git。
-- `docs/`：硬件、构建、SDK、测试和设计决策记录。
-- `CHANGELOG.md`：版本变化。
+- `mac-editor/`：Tauri 2 + TypeScript/Vite + Rust。导入 PNG、JPEG、HEIC、WebP 或 GIF，完成绿色显示处理并预览 448×352 AIUI 画面。
+- `aiui-app/`：AIUI 显示代码、测试和基础 AIX。固定 448×352，支持六个位置、96/140/190 三档大小、40/60/80/100 四档透明度。
+- `store-assets/`：AIUI icon 源文件和 512×512 上传成品。
+- `test-assets/synthetic-portraits/`：程序生成的绿色小人测试素材。
+- `glasses-app/`：旧的原生 Android 显示端，保留但不再作为主发布路径。
+- `artifacts/`：本地成品和验证截图，默认不提交 Git。
 
-Mac 编辑器通过 Rust 命令执行三件事：
+每次点击“发送到眼镜”时，Mac 会：
 
-1. 静态图片使用 macOS `sips` 规范化；GIF 由 Rust 逐帧解码。两者都在本地进行绿色单色、Gamma、对比度、锐化、量化或抖动处理。
-2. 检测 RG-glasses 的 USB 枚举、ADB 状态和眼镜显示 APK。
-3. 用 ADB 将处理后的 `current.png` 或 `current.gif` 推送到应用专属目录，再用白名单 Intent extras 启动显示 Activity。
+1. 在本地处理静态照片或 GIF 的全部帧，并应用当前显示参数。
+2. 动态生成一个包含画面、参数和 AIUI 代码的 AIX。
+3. 通过 USB/ADB 写入眼镜 AIUI 本地目录，更新 Agent 索引并打开正式 Agent ID。
+4. 删除旧开发 ID `lockethud-photo` 的索引和文件，防止出现重复入口。
 
-没有云端、账号、分析 SDK、网络同步服务或无认证监听端口。
+动态 AIX 会保留在眼镜本地，所以退出后再次打开仍能看到最后发送的画面。没有云端图片上传路径。
 
-## 4. 当前版本和构建物
+## 4. AIUI 发布资料
 
-- Mac 编辑器：0.1.3，用户可见名称“乐奇相片hud”，Apple Silicon arm64。
-- `/Applications/乐奇相片hud.app` 已安装并启动；旧英文版已移入废纸篓，可恢复。
-- Android 显示端：0.1.3（versionCode 4），用户可见名称“乐奇相片hud”。
-- Mac 图标源：`mac-editor/src-tauri/icons/lockethud-source.svg`。
-- Mac 和 Android 启动图标均使用绿色微笑小人；头身相切连接并保留亮绿色轮廓。
-- Mac 图标圆角外区域为真实透明像素，不是白底。
-- App Bundle 已包含 `Contents/Resources/icon.icns`，其 SHA-256 与源码生成的 `icon.icns` 一致。
-- Mac DMG：`artifacts/LocketHUD-0.1.3-arm64.dmg`。
-- Mac DMG 大小：2,365,022 bytes。
-- Mac DMG SHA-256：`63362c3ceac387eeff5074e0cbc7b8c8d8376bfa0f4b004d7e46bf4bdbbdbaa9`。
-- Android APK：`artifacts/LocketHUD-Glasses-0.1.3-debug.apk`。
-- Android APK 大小：2,544,469 bytes。
-- Android APK SHA-256：`949d589323e8b5cd694a442f523909e672bd74c7c601ff9736aeb11a0fe9e51f`。
+- 智能体名称：`照片浮窗`
+- 版本：`1.0.0`
+- 分类：`生活`
+- Agent ID：`fea33d142f1443b282eb9c3a62d54183`
+- 当前状态：`审核中`
+- 软件下载地址：`https://github.com/Wenshuishi0528/LocketHUD`
+- 功能介绍：
 
-DMG 是完整 ad-hoc 签名但未经过 Apple notarization，只用于当前 Mac 本地安装。不要将其描述为可公开分发或已公证版本。
+  > 照片浮窗配合「乐奇相片hud」Mac 软件使用，可通过 USB 把本地照片或 GIF 动图发送到乐奇眼镜，并设置显示位置、大小和透明度；退出后再次打开仍会保留最后发送的画面。软件下载地址：https://github.com/Wenshuishi0528/LocketHUD
 
-## 5. 构建与验证
+- 开场提示：
 
-Mac 编辑器：
+  > 照片浮窗已启动。请先在 Mac 安装并打开「乐奇相片hud」，连接眼镜后选择照片或 GIF，调整位置、大小和透明度，再点击「发送到眼镜」。软件下载：https://github.com/Wenshuishi0528/LocketHUD
+
+若审核通过，不需要重复提交。若被退回，只针对明确反馈修改并重新提交。
+
+## 5. 最终成品
+
+- Mac DMG：`artifacts/LocketHUD-0.1.4-arm64.dmg`
+  - 大小：2,405,155 bytes
+  - SHA-256：`c9a8dee76e436f98bd2a2af181876c8522f32ad0cab620b4bd7a7e780bfc60f4`
+- AIUI AIX：`artifacts/PhotoFloatingWindow-AIUI-1.0.0.aix`
+  - 大小：20,587 bytes
+  - SHA-256：`3c2e7e8f49b7f724cb53bf71c11e855f3a56e0125d98bfe6d13adb2514e381d1`
+  - 内部 VERSION：`6926bd26-a440-4c59-ac8c-dcd04052ec39`
+- AIUI icon：`artifacts/PhotoFloatingWindow-icon-512.png`
+  - 512×512 PNG，大小 15,747 bytes
+  - SHA-256：`41382878348562ca461b043cafd9eae3eb31355b2ee12e851a37aaae2a979cec`
+- 本机安装：`/Applications/乐奇相片hud.app`
+
+Mac App 为完整 ad-hoc 签名但没有 Apple notarization。它可用于当前开发 Mac 和测试分发，但不要描述为 Apple 公证版本。
+
+## 6. 构建与验证
+
+AIUI：
+
+```sh
+cd "/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC/aiui-app"
+npm install
+npm run check
+npm run pack:aix
+npm run verify:aix
+```
+
+Mac：
 
 ```sh
 cd "/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC/mac-editor"
@@ -68,65 +93,40 @@ cargo test --manifest-path src-tauri/Cargo.toml
 npm run tauri build
 ```
 
-发布检查：
+成品检查：
 
 ```sh
-codesign --verify --deep --strict \
-  "src-tauri/target/release/bundle/macos/乐奇相片hud.app"
-hdiutil verify \
-  "src-tauri/target/release/bundle/dmg/乐奇相片hud_0.1.3_aarch64.dmg"
+codesign --verify --deep --strict "/Applications/乐奇相片hud.app"
+hdiutil verify "/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC/artifacts/LocketHUD-0.1.4-arm64.dmg"
 ```
 
-Android 显示端仅在相关代码改变时重跑：
+已完成的必要验证：
 
-```sh
-cd "/Users/apple/Documents/乐奇AI眼镜开发/LocketHUD-POC"
-./gradlew clean assembleDebug lintDebug testDebugUnitTest
-python3 -m unittest discover -s tools/tests -v
-```
+- AIUI 检查 2/2 通过，AIX 官方格式验证通过，共 10 个条目。
+- Rust 测试 5/5、Mac 前端生产构建、Tauri release 打包通过。
+- Mac App 严格签名检查和 DMG 完整性检查通过。
+- RG-glasses 实机发送成功，正式 Agent ID 能启动和显示。
+- 设备迁移清理后，本地 AIUI 索引只保留正式 Agent ID，没有旧开发入口。
+- AIUI Studio 指令测试“打开照片浮窗”通过，并显示“提交成功”。
 
-不要为了 Mac UI、文档或图标修改而重复 Android 全套审计。
+## 7. 连接与已知限制
 
-## 6. 已验证行为
+- V1 仍使用 USB/ADB 作为开发传输方式；插上线不代表 ADB 已授权。
+- 若 Mac 能看到 USB 设备但 ADB 为空，请在眼镜中重新开启 USB 调试并确认这台 Mac 的 RSA 授权。
+- 用户动态画面包保留在眼镜本地；眼镜固件更新、清理调试数据或恢复出厂可能清除它，重新连接 Mac 发送即可恢复。
+- AIUI 商店当前仍在审核；只有审核通过后，其他用户才能从官方入口公开安装。
+- Mac App 未做 Apple Developer ID 签名和 notarization。
+- 编辑器会保留参数，但重启后不会自动重新载入上次选择的源照片。
 
-- 标准 Android APK 可在 Rokid RG-glasses 安装、启动、退出、卸载和重装。
-- 眼镜 View 为 480×640；六位置、三大小和四透明度均实机通过。
-- Mac release 窗口实际打开过；选图、16 级量化处理、位置、大小和透明度控件通过 GUI 验证。
-- Mac 编辑器能区分 USB 未连接、USB 已连接但 ADB 不可用、ADB 在线但 APK 未安装、完全就绪四类状态。
-- 用户已确认从 Mac 编辑器发送样本照片到眼镜成功。
-- 眼镜端返回键隐藏不再持久化；从启动器后台重开或冷启动都会恢复上一张照片并显示。
-- GIF 会保持动画并循环播放；后台重开或冷启动后继续显示最后发送的 GIF。
-- RG-glasses 已用程序生成的两帧 GIF 实机验证播放与冷启动恢复；验证没有改动已有私人静态照片，随后已切回静态照片。
-- 项目采用 `CC BY 4.0`，署名为 `wenshuishi0528`；第三方依赖保持各自许可证。
+## 8. 下一步
 
-## 7. 连接注意事项
+1. 等待 AIUI 审核结果。
+2. 若审核通过，确认公开页面名称、icon、介绍和下载链接显示正确。
+3. 若审核退回，只修复审核明确指出的问题，不重复无关审计。
 
-- “插着线”不等于 ADB 在线。Mac 可能能看到 `RG-glasses-IDP`，但 `adb devices -l` 为空。
-- 若 USB 存在但 ADB 为空：在眼镜中关闭再开启 USB 调试，确认这台 Mac 的 RSA 授权，必要时拔插一次数据线。
-- 尽量直连 Mac，避免不稳定扩展坞。
-- 编辑器每约 4 秒自动刷新设备状态。
-- USB/ADB 状态会随眼镜休眠或重新插线改变，交接文件中的在线状态不是永久事实。
+## 9. 明确不要做
 
-## 8. 已知限制
-
-- V1 使用 ADB，仅是开发传输方式，不是消费者无线同步方案。
-- Mac App 为 ad-hoc 签名、未公证。
-- 编辑器重启后会保留参数，但当前不会自动重新载入上次选择的源照片；用户需重新选择。
-- 30 分钟稳定性测试时 USB 正在充电，不能据此给出脱线续航结论。
-- 60 分钟和不插 USB 的耗电测试尚未完成。
-
-## 9. 下一步优先级
-
-1. 用用户选择的 GIF 动图确认 Mac 预览和眼镜循环播放速度符合预期。
-2. 用静态照片再做一次 0.1.3 发送冒烟测试，确认原有路径无回归。
-3. 若用户需要，增加“恢复上次照片”或最近照片列表；仍须保持源照片仅在本地。
-4. 只有用户明确要求后，才设计配对和加密的消费者传输；不要直接开放无认证局域网端口。
-5. 在不插 USB 的情况下测量用户可接受的实际续航，再决定是否移除 `POC0_PASS_WITH_LIMITATIONS`。
-
-## 10. 明确不要做
-
-- 不再做眼镜 Input Probe、触摸板/拍照键映射或眼镜内参数界面，除非用户重新改变产品决定。
-- 不重复与当前修改无关的环境、SDK、Android 或硬件审计；优先直接研发和目标验证。
-- 不引入 iPhone、云、账号、地图、AI、动画、后台服务、系统 overlay 或开机自启动。
-- 不 Root、不刷机、不修改系统分区，不使用来源不明的 Rokid SDK。
-- 不公开发布代码，不上传 APK、DMG、日志或私人照片；仅按用户授权维护私有源码备份。
+- 不把参数调整界面放到眼镜端。
+- 不上传用户私人照片、日志或实机截图到公开仓库/AIUI 发布素材。
+- 不引入云端图片存储、账号、分析 SDK、无认证局域网端口、Root、刷机或系统分区修改。
+- 不重复与当前修改无关的 Android、SDK 或硬件审计。

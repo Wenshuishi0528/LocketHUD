@@ -82,7 +82,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
         </span>
         <div>
           <h1>乐奇相片hud</h1>
-          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.3 · 作者 wenshuishi0528</span></p>
+          <p>Mac 相片编辑器 <span class="brand-meta">版本 0.1.4 · 作者 wenshuishi0528</span></p>
         </div>
       </div>
       <button class="device-pill" id="refresh-device" type="button" aria-label="刷新眼镜连接状态">
@@ -99,7 +99,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
             <span class="eyebrow">眼镜画面</span>
             <h2>实时构图预览</h2>
           </div>
-          <span class="resolution">480 × 640</span>
+          <span class="resolution">AIUI · 448 × 352</span>
         </div>
 
         <div class="preview-frame">
@@ -260,15 +260,14 @@ function syncControls(): void {
 }
 
 function updatePreview(): void {
-  const stageWidth = 480;
-  const stageHeight = 640;
-  const margin = stageWidth * 0.04;
-  const maxWidth = stageWidth * 0.25 - margin;
-  const widthRatio = { small: 0.14, medium: 0.18, large: 0.22 }[settings.size];
+  const stageWidth = 448;
+  const stageHeight = 352;
+  const margin = 18;
+  const targetWidth = { small: 96, medium: 140, large: 190 }[settings.size];
   const aspect = previewImage.naturalWidth && previewImage.naturalHeight
     ? previewImage.naturalWidth / previewImage.naturalHeight
     : 0.5;
-  let width = Math.min(stageWidth * widthRatio, maxWidth);
+  let width = targetWidth;
   let height = width / Math.max(0.05, aspect);
   const maxHeight = stageHeight - margin * 2;
   if (height > maxHeight) {
