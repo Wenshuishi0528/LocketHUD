@@ -27,8 +27,8 @@ Both installed applications display the name `乐奇相片hud`. Their launcher i
 
 The public release contains both applications and their checksums: [乐奇相片hud 0.1.2](https://github.com/Wenshuishi0528/LocketHUD/releases/tag/v0.1.2).
 
-- `乐奇相片hud-0.1.2-arm64.dmg`: Apple Silicon Mac application.
-- `乐奇相片hud-Glasses-0.1.2-debug.apk`: Rokid glasses Android application.
+- `LocketHUD-0.1.2-arm64.dmg`: Apple Silicon Mac application; the installed name is “乐奇相片hud”.
+- `LocketHUD-Glasses-0.1.2-debug.apk`: Rokid glasses Android application; the launcher name is “乐奇相片hud”.
 
 No personal photo is stored in this repository or its releases. Only source code, documentation, generated test assets, application packages, and checksums are published.
 

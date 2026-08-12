@@ -13,8 +13,8 @@
 
 ## 下载
 
-- `乐奇相片hud-0.1.2-arm64.dmg`：Apple Silicon Mac 安装包。
-- `乐奇相片hud-Glasses-0.1.2-debug.apk`：Rokid 眼镜 Android 安装包。
+- `LocketHUD-0.1.2-arm64.dmg`：Apple Silicon Mac 安装包，安装后名称为“乐奇相片hud”。
+- `LocketHUD-Glasses-0.1.2-debug.apk`：Rokid 眼镜 Android 安装包，启动器名称为“乐奇相片hud”。
 - `SHA256SUMS.txt`：两个安装包的 SHA-256 校验值。
 
 ## 注意

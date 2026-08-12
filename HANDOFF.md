@@ -47,10 +47,10 @@ Mac 编辑器通过 Rust 命令执行三件事：
 - Mac 和 Android 启动图标均使用绿色微笑小人；头身相切连接并保留亮绿色轮廓。
 - Mac 图标圆角外区域为真实透明像素，不是白底。
 - App Bundle 已包含 `Contents/Resources/icon.icns`，其 SHA-256 与源码生成的 `icon.icns` 一致。
-- Mac DMG：`artifacts/乐奇相片hud-0.1.2-arm64.dmg`。
+- Mac DMG：`artifacts/LocketHUD-0.1.2-arm64.dmg`。
 - Mac DMG 大小：2,330,557 bytes。
 - Mac DMG SHA-256：`53900868230e72847ef1eeccd2183424f301be774d9576cb4ac55a7136867302`。
-- Android APK：`artifacts/乐奇相片hud-Glasses-0.1.2-debug.apk`。
+- Android APK：`artifacts/LocketHUD-Glasses-0.1.2-debug.apk`。
 - Android APK 大小：2,607,462 bytes。
 - Android APK SHA-256：`a5d8e4b911d1f8bb5c1dbc7e06aff32285a3f2359ff5e9d89a765df9a7898f2a`。
 
