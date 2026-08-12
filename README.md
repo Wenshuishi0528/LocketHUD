@@ -148,3 +148,5 @@ The processor does not modify the source, does not connect to a network, preserv
 - [Development handoff](HANDOFF.md)
 
 Open the Mac editor, connect the glasses by USB, select a photo or GIF, adjust it in the 448×352 AIUI preview, and press “发送到眼镜”. ADB is the V1 development transport. GitHub AIUI 1.0.1 is separately available; the official AIUI Studio 1.0.0 submission remains publicly unavailable until Rokid approves it.
+
+清晰度说明：就当前实现和实机观感而言，原生 Android 版通常比 AIUI 版更清晰，因为 Android 版把较高分辨率的处理图保留到眼镜端，再直接绘制到 480×640 原生画布；AIUI 版则必须先在 Mac 端把图片、位置和透明度合成为固定的 448×352 页面帧，再交给 AIUI 宿主显示。AIUI 1.0.1 已取消应用自身的重复缩放，但无法绕过 AIUI 固定页面画布和宿主合成这一层，因此清晰度优先时建议使用 Android 版。
