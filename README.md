@@ -1,6 +1,18 @@
 # 乐奇相片hud
 
+<p align="center">
+  <img src="docs/images/lockethud-cover.png" alt="乐奇相片hud 绿色微笑小人图标" width="220">
+</p>
+
 “乐奇相片hud”（代码名 LocketHUD）是在 Mac 上处理相片、并把最终画面显示到 Rokid 眼镜视野边缘的本地软件。仓库包含轻量 Android 显示端和 V1 Mac 编辑器，不修改父目录中的水平仪/HUD 或翻译应用。
+
+## 实际显示效果
+
+<p align="center">
+  <img src="docs/images/lockethud-in-use.jpg" alt="乐奇相片hud 在 Rokid 眼镜视野右下角的实际显示效果" width="560">
+</p>
+
+实拍图展示了绿色人物轮廓在眼镜视野右下角的效果。位置、大小、透明度和相片处理参数均由 Mac 软件调整，眼镜端负责最终显示。
 
 Current conclusion: `POC0_PASS_WITH_LIMITATIONS`; `V1_MAC_EDITOR_IMPLEMENTED`. The standard Android display path passed on the Rokid RG-glasses and the wearer reported no ghosting for the default layout. Product control has intentionally moved to the Mac: select/process a photo, preview it, adjust position/size/opacity, and send it over the existing local ADB connection. Physical touchpad mapping is no longer on the active development path.
 
@@ -30,7 +42,7 @@ The public release contains both applications and their checksums: [乐奇相片
 - `LocketHUD-0.1.2-arm64.dmg`: Apple Silicon Mac application; the installed name is “乐奇相片hud”.
 - `LocketHUD-Glasses-0.1.2-debug.apk`: Rokid glasses Android application; the launcher name is “乐奇相片hud”.
 
-No personal photo is stored in this repository or its releases. Only source code, documentation, generated test assets, application packages, and checksums are published.
+No private source portrait selected in the application is stored in this repository or its releases. The two product-introduction images above are published with the author's permission.
 
 ## Build
 
