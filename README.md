@@ -1,8 +1,8 @@
 # LocketHUD POC
 
-LocketHUD POC is an independent, local-only Android prototype for displaying one static portrait at the edge of a Rokid glasses viewport. This repository implements only G0 support and POC-0 from the 2026-08-11 specification. It does not modify the existing level/HUD or translation apps in the parent workspace.
+LocketHUD is an independent, local-only system for preparing a portrait on a Mac and displaying it at the edge of a Rokid glasses viewport. The repository contains the lightweight Android display app plus the V1 Mac editor. It does not modify the existing level/HUD or translation apps in the parent workspace.
 
-Current conclusion: `POC0_PASS_WITH_LIMITATIONS`. G0 and the standard Android APK path passed on the connected Rokid RG-glasses: install, launch, rendering, configuration persistence, foreground keep-screen-on behavior, synthetic private-image import, and a 30-minute USB-powered stability run were verified. Binocular optical comfort, physical touchpad/key mapping, unplugged battery drain, and the optional 60-minute run remain open.
+Current conclusion: `POC0_PASS_WITH_LIMITATIONS`; `V1_MAC_EDITOR_IMPLEMENTED`. The standard Android display path passed on the Rokid RG-glasses and the wearer reported no ghosting for the default layout. Product control has intentionally moved to the Mac: select/process a photo, preview it, adjust position/size/opacity, and send it over the existing local ADB connection. Physical touchpad mapping is no longer on the active development path.
 
 ## Scope implemented
 
@@ -17,6 +17,7 @@ Current conclusion: `POC0_PASS_WITH_LIMITATIONS`. G0 and the standard Android AP
 - Private PNG import from app-specific storage with size, format, and dimension validation.
 - Offline Pillow CLI for green conversion, gamma, contrast, sharpening, 8/16-level quantization, and Floyd-Steinberg dithering.
 - Program-generated calibration and synthetic portrait assets only.
+- Tauri 2 Mac editor with local image selection, green conversion, 8/16-level quantization, dithering, gamma, contrast, sharpening, layout preview, device detection, and one-click ADB delivery.
 
 The temporary package name is `dev.local.lockethud.poc`; it must be replaced before any distribution.
 
@@ -28,6 +29,16 @@ python3 -m unittest discover -s tools/tests -v
 ```
 
 The build uses Android Studio's bundled JBR because the Mac's default Java 11 is too old for Gradle 9.6/AGP 9.2.
+
+Build the Mac editor:
+
+```sh
+cd mac-editor
+npm install
+npm run build
+cargo test --manifest-path src-tauri/Cargo.toml
+npm run tauri build
+```
 
 ## Install and launch
 
@@ -78,5 +89,6 @@ The processor does not modify the source, does not connect to a network, preserv
 - [Test protocol](docs/TEST_PROTOCOL.md)
 - [Test results](docs/TEST_RESULTS.md)
 - [Decision log](docs/DECISION_LOG.md)
+- [Mac editor](docs/MAC_EDITOR.md)
 
-The next gate is a seated, wearer-observed optical matrix using the connected build: confirm recognition, ghosting, comfort, distraction, and one acceptable profile/anchor/size combination. Capture the physical quick-hide gesture at the same time. Do not start the Mac editor, iPhone app, networking, animation, or AI work until those two product-experience checks are accepted; rerun endurance unplugged before making any battery-life claim.
+Open the Mac editor, connect the glasses by USB, select a photo, adjust it in the 480×640 preview, and press “发送到眼镜”. ADB is the V1 development transport; a consumer transport is deliberately deferred. Unplugged endurance is still required before making any battery-life claim.

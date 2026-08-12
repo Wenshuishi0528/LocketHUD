@@ -39,3 +39,13 @@ Device screenshots showed Medium and Large collapsing to the same width because 
 ## 2026-08-11 — Revised product gate
 
 G0 and the standard Android rendering path pass. A 30-minute USB-powered foreground run completed on the same process with no crash, screen-off, or thermal warning. The decision is `POC0_PASS_WITH_LIMITATIONS`: binocular optical judgment, a physical quick-hide mapping, unplugged battery drain, and the optional 60-minute run remain pending. Do not begin V1 Mac editor work until the user accepts at least one optical combination and the physical input path is confirmed.
+
+## 2026-08-11 — First wearer optical result
+
+The wearer reported no visible ghosting for the default right-middle, Small, opacity-0.6 synthetic portrait. This removes ghosting as a blocker for that combination. Remaining product checks are narrowed to recognizability/comfort and unplugged power behavior; a full exhaustive visual matrix is not required before the next implementation step.
+
+## 2026-08-11 — Control moves to the Mac
+
+The wearer rejected the Input Probe experience because the glasses showed no useful UI or exposed test/code-like content. That route is stopped. The product boundary is now explicit: the glasses application is a final display endpoint, while photo selection, image processing, layout, size, opacity, visibility, and transfer controls live in the Mac editor. No physical Rokid input mapping is required for V1.
+
+The first Mac transport reuses the already verified local ADB debug interface. This keeps the implementation small and avoids reopening the stable Android renderer. It is a development transport, not a claim of consumer wireless synchronization.

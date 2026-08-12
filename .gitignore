@@ -14,6 +14,15 @@ artifacts/*.apk
 artifacts/*.aab
 artifacts/*.png
 artifacts/*.log
+artifacts/*.dmg
+mac-editor/node_modules/
+mac-editor/dist/
+mac-editor/src-tauri/target/
+mac-editor/src-tauri/gen/
+mac-editor/src-tauri/icons/*
+!mac-editor/src-tauri/icons/icon.png
+!mac-editor/src-tauri/icons/icon.icns
+!mac-editor/src-tauri/icons/lockethud-source.svg
 *.jks
 *.keystore
 keystore.properties
